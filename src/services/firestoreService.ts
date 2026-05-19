@@ -128,10 +128,11 @@ export const getPlantById = async (plantId: string) => {
   return null;
 };
 
-export const getPlantMedia = async (plantId: string) => {
+export const getPlantMedia = async (ownerId: string, plantId: string) => {
   if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, 'media_assets'),
+    where('ownerId', '==', ownerId),
     where('plantId', '==', plantId),
     where('uploadStatus', '==', 'uploaded'),
     orderBy('createdAt', 'desc'),

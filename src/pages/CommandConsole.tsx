@@ -148,12 +148,14 @@ export default function CommandConsole() {
         let count = actionData.quantity ? Number(actionData.quantity) : 1;
         if (isNaN(count)) count = 1;
 
-        for (let i = 0; i < count; i++) {
-          await createPlant(user.uid, grow.id, {
-            name: `${actionData.strain} #${i + 1}`,
-            strain: actionData.strain,
-          });
-        }
+        await Promise.all(
+          Array.from({ length: count }, (_, i) =>
+            createPlant(user.uid, grow.id, {
+              name: `${actionData.strain} #${i + 1}`,
+              strain: actionData.strain,
+            }),
+          ),
+        );
 
         setFeed((prev) => [
           ...prev,

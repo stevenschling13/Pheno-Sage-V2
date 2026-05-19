@@ -126,10 +126,10 @@ export default function PlantDetailPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!plantId || !growId) return;
+      if (!plantId || !growId || !user) return;
       try {
         setLoading(true);
-        const [p, m] = await Promise.all([getPlantById(plantId), getPlantMedia(plantId)]);
+        const [p, m] = await Promise.all([getPlantById(plantId), getPlantMedia(user.uid, plantId)]);
 
         let hydratedMedia: Array<MediaAsset & { url?: string }> = [];
         if (m && m.length > 0) {
@@ -159,7 +159,7 @@ export default function PlantDetailPage() {
       }
     }
     fetchData();
-  }, [plantId, growId]);
+  }, [plantId, growId, user]);
 
   if (loading) {
     return (
