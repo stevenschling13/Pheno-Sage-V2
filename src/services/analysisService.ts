@@ -1,6 +1,6 @@
 import { db } from '../lib/firebase';
 import { collection, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
-import { getMediaBlobUrl } from './mediaService';
+import { getMediaBlob } from './mediaService';
 import { apiPost, ApiError } from '../lib/apiClient';
 
 interface AnalysisFinding {
@@ -35,30 +35,7 @@ export async function analyzePlantMedia(
   storagePath: string,
   mediaType: string,
 ) {
-  const url = await getMediaBlobUrl(storagePath);
-  let blob: Blob;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        throw new Error(
-          `Permission denied (${response.status}) when fetching the media for analysis.`,
-        );
-      }
-      throw new Error(`Server returned ${response.status} when fetching the image/video.`);
-    }
-    blob = await response.blob();
-  } catch (error: any) {
-    if (
-      error.message?.includes('Permission denied') ||
-      error.message?.includes('Server returned')
-    ) {
-      throw error;
-    }
-    throw new Error(
-      `Network error while downloading the media for analysis. Please check your internet connection. Details: ${error.message}`,
-    );
-  }
+  const blob = await getMediaBlob(storagePath);
 
   const base64data = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
