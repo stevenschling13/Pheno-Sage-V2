@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  signOut as firebaseSignOut 
+import {
+  User,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -71,9 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } else {
         // Update last login
-        await setDoc(userRef, {
-          lastLogin: serverTimestamp(),
-        }, { merge: true });
+        await setDoc(
+          userRef,
+          {
+            lastLogin: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
     } catch (err) {
       console.error('Firestore sync error:', err);

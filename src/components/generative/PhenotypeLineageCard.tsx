@@ -10,7 +10,13 @@ interface LineageData {
   lineage_generation?: string;
 }
 
-export function PhenotypeLineageCard({ data, onApprove }: { data: LineageData, onApprove?: () => void }) {
+export function PhenotypeLineageCard({
+  data,
+  onApprove,
+}: {
+  data: LineageData;
+  onApprove?: () => void;
+}) {
   const [approved, setApproved] = useState(false);
   const [discarded, setDiscarded] = useState(false);
 
@@ -23,7 +29,9 @@ export function PhenotypeLineageCard({ data, onApprove }: { data: LineageData, o
           <Dna className="w-4 h-4 text-purple-500" />
           <span className="uppercase tracking-widest font-bold">Lineage Architecture</span>
         </div>
-        <span className={`text-zinc-500 text-[10px] uppercase font-bold px-2 py-1 border ${approved ? 'border-purple-500/30 text-purple-400' : 'border-[#27272a]'}`}>
+        <span
+          className={`text-zinc-500 text-[10px] uppercase font-bold px-2 py-1 border ${approved ? 'border-purple-500/30 text-purple-400' : 'border-[#27272a]'}`}
+        >
           {approved ? 'LOGGED' : 'PENDING APPROVAL'}
         </span>
       </div>
@@ -36,28 +44,33 @@ export function PhenotypeLineageCard({ data, onApprove }: { data: LineageData, o
             <span>GEN: {data.lineage_generation || 'F1'}</span>
           </div>
           <div className="flex justify-between items-center mb-3">
-             <div className="flex items-center gap-2 text-zinc-100 font-bold">
-               <Leaf className="w-4 h-4 text-emerald-500" />
-               {data.mother_id || 'UNKNOWN_MOTHER'}
-             </div>
-             <div className="text-xs text-zinc-400">
-               {data.clone_reason || 'Propagating desirable traits'}
-             </div>
+            <div className="flex items-center gap-2 text-zinc-100 font-bold">
+              <Leaf className="w-4 h-4 text-emerald-500" />
+              {data.mother_id || 'UNKNOWN_MOTHER'}
+            </div>
+            <div className="text-xs text-zinc-400">
+              {data.clone_reason || 'Propagating desirable traits'}
+            </div>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-             {(data.mother_traits || ['Dense Canopy', 'High Terpene', 'Fast Rooting']).map((trait, i) => (
-               <div key={i} className="text-[10px] bg-[#1a1a1a] border border-[#27272a] px-2 py-1 text-center text-purple-300 truncate">
-                 {trait}
-               </div>
-             ))}
+            {(data.mother_traits || ['Dense Canopy', 'High Terpene', 'Fast Rooting']).map(
+              (trait, i) => (
+                <div
+                  key={i}
+                  className="text-[10px] bg-[#1a1a1a] border border-[#27272a] px-2 py-1 text-center text-purple-300 truncate"
+                >
+                  {trait}
+                </div>
+              ),
+            )}
           </div>
         </div>
 
         {/* Evolutionary Tree / Offspring */}
         <div className="flex items-center justify-center -my-2 relative z-10">
           <div className="bg-[#09090b] px-2 text-zinc-600">
-             <GitMerge className="w-4 h-4 rotate-180" />
+            <GitMerge className="w-4 h-4 rotate-180" />
           </div>
         </div>
 
@@ -67,13 +80,16 @@ export function PhenotypeLineageCard({ data, onApprove }: { data: LineageData, o
           </div>
           <div className="flex items-center justify-between">
             <div className="text-2xl text-purple-400 font-bold">
-               {data.clone_count || 0} <span className="text-sm font-normal text-purple-500/50">CUTS TAKEN</span>
+              {data.clone_count || 0}{' '}
+              <span className="text-sm font-normal text-purple-500/50">CUTS TAKEN</span>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: Math.min(data.clone_count || 4, 12) }).map((_, i) => (
-                 <div key={i} className="w-2 h-6 bg-purple-500/20 border border-purple-500/40" />
+                <div key={i} className="w-2 h-6 bg-purple-500/20 border border-purple-500/40" />
               ))}
-              {(data.clone_count || 0) > 12 && <div className="text-[9px] text-zinc-500 ml-1 mt-auto">...</div>}
+              {(data.clone_count || 0) > 12 && (
+                <div className="text-[9px] text-zinc-500 ml-1 mt-auto">...</div>
+              )}
             </div>
           </div>
         </div>
@@ -81,17 +97,17 @@ export function PhenotypeLineageCard({ data, onApprove }: { data: LineageData, o
 
       {!approved && (
         <div className="flex justify-end gap-2 pt-2 border-t border-[#27272a]">
-          <button 
+          <button
             onClick={() => setDiscarded(true)}
             className="flex items-center gap-2 text-zinc-500 hover:text-red-400 border border-[#27272a] hover:border-red-500/30 px-3 py-2 uppercase tracking-widest text-[10px] transition-colors rounded"
           >
             <X className="w-3 h-3" />
             Discard
           </button>
-          <button 
+          <button
             onClick={() => {
-               setApproved(true);
-               if (onApprove) onApprove();
+              setApproved(true);
+              if (onApprove) onApprove();
             }}
             className="flex items-center gap-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30 px-4 py-2 uppercase tracking-widest text-[10px] transition-colors rounded"
           >

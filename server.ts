@@ -50,7 +50,10 @@ function validate<T>(schema: z.ZodType<T>) {
   };
 }
 
-async function callGemini<T>(label: string, payload: Parameters<typeof ai.models.generateContent>[0]): Promise<T> {
+async function callGemini<T>(
+  label: string,
+  payload: Parameters<typeof ai.models.generateContent>[0],
+): Promise<T> {
   const response = await withTimeout(
     ai.models.generateContent(payload),
     env.GEMINI_REQUEST_TIMEOUT_MS,
@@ -190,9 +193,12 @@ api.post('/copilot', validate(CopilotRequestSchema), async (req: Request, res: R
 
       aggregatedHistory = Array.from(buckets.entries()).map(([key, bucket]) => ({
         time: typeof key === 'number' ? new Date(key).toISOString() : key,
-        avg_vpd: bucket.count && bucket.vpd ? Number((bucket.vpd / bucket.count).toFixed(2)) : undefined,
-        avg_temp: bucket.count && bucket.temp ? Number((bucket.temp / bucket.count).toFixed(2)) : undefined,
-        avg_ec: bucket.count && bucket.ec ? Number((bucket.ec / bucket.count).toFixed(2)) : undefined,
+        avg_vpd:
+          bucket.count && bucket.vpd ? Number((bucket.vpd / bucket.count).toFixed(2)) : undefined,
+        avg_temp:
+          bucket.count && bucket.temp ? Number((bucket.temp / bucket.count).toFixed(2)) : undefined,
+        avg_ec:
+          bucket.count && bucket.ec ? Number((bucket.ec / bucket.count).toFixed(2)) : undefined,
         events: bucket.notes.length > 0 ? bucket.notes.join('; ') : undefined,
       }));
     }

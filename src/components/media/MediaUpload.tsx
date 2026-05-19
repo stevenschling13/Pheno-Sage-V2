@@ -1,5 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon, Video as VideoIcon, RefreshCw, AlertCircle, CheckCircle2, Sparkles, AlertTriangle } from 'lucide-react';
+import {
+  Upload,
+  X,
+  Loader2,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  AlertTriangle,
+} from 'lucide-react';
 import { uploadPlantMedia } from '../../services/mediaService';
 import { analyzePlantMedia } from '../../services/analysisService';
 import { ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MediaAsset } from '../../types';
@@ -17,7 +28,12 @@ interface UploadErrorState {
   details?: string;
 }
 
-export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantId, onUploadComplete }) => {
+export const MediaUpload: React.FC<MediaUploadProps> = ({
+  userId,
+  growId,
+  plantId,
+  onUploadComplete,
+}) => {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<UploadErrorState | null>(null);
@@ -28,7 +44,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisSuccess, setAnalysisSuccess] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,7 +55,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
       }
     };
   }, [previewUrl]);
-  
+
   const processUpload = async (file: File) => {
     setError(null);
     setIsUploading(true);
@@ -48,7 +64,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
     setUploadedAsset(null);
     setAnalysisError(null);
     setAnalysisSuccess(false);
-    
+
     try {
       const asset = await uploadPlantMedia(userId, growId, plantId, file, (p) => {
         setProgress(Math.round(p));
@@ -63,25 +79,41 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
 
       if (errorMessage.includes('exceeds 20MB')) {
         title = 'Image Too Large';
-        details = 'Images must be smaller than 20MB. Please resize or compress your image and try again.';
+        details =
+          'Images must be smaller than 20MB. Please resize or compress your image and try again.';
       } else if (errorMessage.includes('exceeds 200MB')) {
         title = 'Video Too Large';
-        details = 'Videos must be smaller than 200MB. Please compress your video or select a shorter clip.';
-      } else if (errorMessage.toLowerCase().includes('unsupported') || errorMessage.toLowerCase().includes('invalid file')) {
+        details =
+          'Videos must be smaller than 200MB. Please compress your video or select a shorter clip.';
+      } else if (
+        errorMessage.toLowerCase().includes('unsupported') ||
+        errorMessage.toLowerCase().includes('invalid file')
+      ) {
         title = 'Invalid File Format';
         details = `We only support JPG, PNG, WEBP for images and MP4, WEBM for videos.`;
-      } else if (errorMessage.includes('storage/unauthorized') || errorMessage.includes('permission-denied')) {
+      } else if (
+        errorMessage.includes('storage/unauthorized') ||
+        errorMessage.includes('permission-denied')
+      ) {
         title = 'Permission Denied';
-        details = 'You do not have permission to upload media to this plant. Only the grow owner can add media.';
+        details =
+          'You do not have permission to upload media to this plant. Only the grow owner can add media.';
       } else if (errorMessage.includes('storage/canceled')) {
         title = 'Upload Canceled';
-        details = 'The upload process was canceled. If you did not cancel it, please check your connection and retry.';
-      } else if (errorMessage.includes('storage/retry-limit-exceeded') || errorMessage.includes('Server Connection Error') || errorMessage.includes('network')) {
+        details =
+          'The upload process was canceled. If you did not cancel it, please check your connection and retry.';
+      } else if (
+        errorMessage.includes('storage/retry-limit-exceeded') ||
+        errorMessage.includes('Server Connection Error') ||
+        errorMessage.includes('network')
+      ) {
         title = 'Network Error';
-        details = 'Could not connect to the server due to a poor network connection. Please check your internet connection and try again.';
+        details =
+          'Could not connect to the server due to a poor network connection. Please check your internet connection and try again.';
       } else if (errorMessage.includes('Upload failed:')) {
         title = 'File Transfer Error';
-        details = 'There was a technical problem transferring the file to storage. Please try again.';
+        details =
+          'There was a technical problem transferring the file to storage. Please try again.';
       }
 
       setError({ title, message: errorMessage, details });
@@ -93,49 +125,51 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Clear previous state
     handleClear();
-    
+
     // Validate file type and size immediately
     const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
 
     if (!isImage && !isVideo) {
-      setError({ 
-        title: 'Invalid File Format', 
-        message: `Unsupported file type: ${file.type || 'unknown'}`, 
-        details: 'We only support JPG, PNG, WEBP for images and MP4, WEBM for videos.' 
+      setError({
+        title: 'Invalid File Format',
+        message: `Unsupported file type: ${file.type || 'unknown'}`,
+        details: 'We only support JPG, PNG, WEBP for images and MP4, WEBM for videos.',
       });
       return;
     }
 
     if (isImage && file.size > 20 * 1024 * 1024) {
-      setError({ 
-        title: 'Image Too Large', 
-        message: `File size exceeds 20MB limit.`, 
-        details: 'Images must be smaller than 20MB. Please resize or compress your image and try again.' 
+      setError({
+        title: 'Image Too Large',
+        message: `File size exceeds 20MB limit.`,
+        details:
+          'Images must be smaller than 20MB. Please resize or compress your image and try again.',
       });
       return;
     }
 
     if (isVideo && file.size > 200 * 1024 * 1024) {
-      setError({ 
-        title: 'Video Too Large', 
-        message: `File size exceeds 200MB limit.`, 
-        details: 'Videos must be smaller than 200MB. Please compress your video or select a shorter clip.' 
+      setError({
+        title: 'Video Too Large',
+        message: `File size exceeds 200MB limit.`,
+        details:
+          'Videos must be smaller than 200MB. Please compress your video or select a shorter clip.',
       });
       return;
     }
 
     setPendingFile(file);
     setIsSuccess(false);
-    
+
     // Generate preview
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
   };
-  
+
   const handleConfirmUpload = () => {
     if (pendingFile) {
       processUpload(pendingFile);
@@ -173,9 +207,19 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
     setAnalysisSuccess(false);
 
     try {
-      const analysisResult: any = await analyzePlantMedia(userId, uploadedAsset.growId, uploadedAsset.plantId, uploadedAsset.id, uploadedAsset.storagePath, uploadedAsset.mediaType);
+      const analysisResult: any = await analyzePlantMedia(
+        userId,
+        uploadedAsset.growId,
+        uploadedAsset.plantId,
+        uploadedAsset.id,
+        uploadedAsset.storagePath,
+        uploadedAsset.mediaType,
+      );
       if (analysisResult.isFallback) {
-        setAnalysisError(analysisResult.fallbackReason || 'The media quality was too poor to analyze. Please upload a clear, well-lit image.');
+        setAnalysisError(
+          analysisResult.fallbackReason ||
+            'The media quality was too poor to analyze. Please upload a clear, well-lit image.',
+        );
       } else {
         setAnalysisSuccess(true);
       }
@@ -183,14 +227,26 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
       console.error(error);
       const errString = error?.message || '';
       let errorMessage = 'An unexpected error occurred during analysis.';
-      
-      if (errString.includes('Permission denied') || errString.toLowerCase().includes('unauthorized')) {
+
+      if (
+        errString.includes('Permission denied') ||
+        errString.toLowerCase().includes('unauthorized')
+      ) {
         errorMessage = 'You do not have permission to analyze this media or access it.';
-      } else if (errString.includes('Network issue') || errString.includes('Network error') || errString.toLowerCase().includes('fetch failed')) {
+      } else if (
+        errString.includes('Network issue') ||
+        errString.includes('Network error') ||
+        errString.toLowerCase().includes('fetch failed')
+      ) {
         errorMessage = 'Network error. Please check your internet connection and try again.';
       } else if (errString.includes('timed out') || errString.includes('timeout')) {
-        errorMessage = 'The AI analysis took too long and timed out. This often happens with very large images or videos. Please try again.';
-      } else if (errString.includes('Failed to convert') || errString.includes('Browser error') || errString.includes('Server returned')) {
+        errorMessage =
+          'The AI analysis took too long and timed out. This often happens with very large images or videos. Please try again.';
+      } else if (
+        errString.includes('Failed to convert') ||
+        errString.includes('Browser error') ||
+        errString.includes('Server returned')
+      ) {
         errorMessage = `Media Error: ${errString}`;
       } else if (errString) {
         errorMessage = `Analysis failed: ${errString}. Please try again.`;
@@ -200,7 +256,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
       setIsAnalyzing(false);
     }
   };
-  
+
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
@@ -212,19 +268,18 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
           <ImageIcon className="w-3.5 h-3.5 text-zinc-500" />
           Data Input Stream
         </h3>
-        
+
         {!pendingFile && (
           <button
             onClick={handleButtonClick}
             disabled={isUploading}
             className="flex items-center gap-2 px-3 py-1 bg-brand-bg hover:bg-brand-surface border border-brand-border text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 text-[10px] uppercase tracking-widest font-bold transition-all disabled:opacity-50"
           >
-            <Upload className="w-3 h-3" />
-            [ Mount Media ]
+            <Upload className="w-3 h-3" />[ Mount Media ]
           </button>
         )}
       </div>
-      
+
       <div className="p-4">
         <input
           type="file"
@@ -239,11 +294,19 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
           <div className="border border-brand-border bg-brand-bg relative overflow-hidden">
             <div className="relative aspect-video bg-zinc-900 flex items-center justify-center">
               {pendingFile.type.startsWith('image/') ? (
-                <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain filter grayscale" />
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-w-full max-h-full object-contain filter grayscale"
+                />
               ) : (
-                <video src={previewUrl} className="max-w-full max-h-full object-contain filter grayscale" controls={!isUploading} />
+                <video
+                  src={previewUrl}
+                  className="max-w-full max-h-full object-contain filter grayscale"
+                  controls={!isUploading}
+                />
               )}
-              
+
               {isSuccess && !analysisSuccess && !isAnalyzing && (
                 <div className="absolute top-2 right-2 bg-blue-500/10 border border-blue-500 text-blue-400 px-2 py-1 flex items-center gap-1.5 text-[9px] uppercase font-bold tracking-widest z-20 animate-pulse backdrop-blur-sm">
                   <Sparkles className="w-3 h-3 flex-shrink-0" />
@@ -264,7 +327,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
                     <Loader2 className="w-6 h-6 text-status-optimal animate-spin mx-auto mb-4" />
                     <div className="data-label text-zinc-300 mb-2">Tx_Progress: {progress}%</div>
                     <div className="h-1 w-full bg-zinc-900 border border-zinc-800 overflow-hidden relative">
-                      <div 
+                      <div
                         className="h-full bg-status-optimal transition-all duration-300 absolute left-0 top-0"
                         style={{ width: `${progress}%` }}
                       />
@@ -294,7 +357,11 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
                         </>
                       ) : (
                         <>
-                          {analysisError ? <RefreshCw className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
+                          {analysisError ? (
+                            <RefreshCw className="w-3 h-3" />
+                          ) : (
+                            <ImageIcon className="w-3 h-3" />
+                          )}
                           {analysisError ? 'Retry Diagnostic' : 'Execute AI Diagnostic'}
                         </>
                       )}
@@ -315,17 +382,20 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
                 </div>
               )}
             </div>
-            
+
             <div className="p-3 bg-brand-surface border-t border-brand-border flex items-center justify-between">
               <div className="flex-1 min-w-0 mr-4">
-                <p className="text-[11px] text-zinc-200 mt-0.5 truncate uppercase tracking-widest" title={pendingFile.name}>
+                <p
+                  className="text-[11px] text-zinc-200 mt-0.5 truncate uppercase tracking-widest"
+                  title={pendingFile.name}
+                >
                   {pendingFile.name}
                 </p>
                 <p className="data-value text-[10px] text-zinc-500">
                   {(pendingFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
-              
+
               {!isUploading && !isSuccess && !error && (
                 <div className="flex items-center gap-2">
                   <button
@@ -345,7 +415,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
             </div>
           </div>
         )}
-        
+
         {error && pendingFile && (
           <div className="mt-4 p-3 bg-status-error/10 border border-status-error text-[10px] uppercase tracking-wider font-mono">
             <div className="flex items-start justify-between mb-2">
@@ -353,26 +423,33 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
                 <AlertCircle className="w-4 h-4" />
                 <span>{error.title}</span>
               </div>
-              <button onClick={handleClear} className="text-status-error/70 hover:text-status-error transition-colors">
+              <button
+                onClick={handleClear}
+                className="text-status-error/70 hover:text-status-error transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="text-status-error/90 mb-3 bg-brand-bg p-2 border border-status-error/20">
               <p className="mb-1 leading-relaxed">{error.details}</p>
               {error.message && error.message !== error.details && (
                 <p className="text-[9px] text-status-error/60 mt-1 break-words">{error.message}</p>
               )}
               <div className="mt-2 text-[9px] flex flex-wrap items-center gap-x-2 gap-y-1 opacity-80 border-t border-status-error/20 pt-2">
-                <span className="font-bold">File:</span> 
-                <span className="truncate max-w-[150px] lowercase" title={pendingFile.name}>{pendingFile.name}</span>
-                <span className="px-1.5 py-0.5 bg-status-error/10 border border-status-error/20">{pendingFile.type || 'unknown'}</span>
+                <span className="font-bold">File:</span>
+                <span className="truncate max-w-[150px] lowercase" title={pendingFile.name}>
+                  {pendingFile.name}
+                </span>
+                <span className="px-1.5 py-0.5 bg-status-error/10 border border-status-error/20">
+                  {pendingFile.type || 'unknown'}
+                </span>
                 <span>{(pendingFile.size / (1024 * 1024)).toFixed(2)} MB</span>
               </div>
             </div>
-            
-            <button 
-              onClick={handleRetry} 
+
+            <button
+              onClick={handleRetry}
               className="flex items-center gap-1.5 font-bold bg-status-error/20 hover:bg-status-error/30 text-status-error px-3 py-2 transition-colors w-full justify-center"
             >
               <RefreshCw className="w-3 h-3" />
@@ -388,10 +465,15 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({ userId, growId, plantI
                 <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-status-error" />
                 <div>
                   <p className="font-bold text-status-error">{error.title}</p>
-                  <p className="mt-1 opacity-90 text-status-error/80 leading-relaxed">{error.details || error.message}</p>
+                  <p className="mt-1 opacity-90 text-status-error/80 leading-relaxed">
+                    {error.details || error.message}
+                  </p>
                 </div>
               </div>
-              <button onClick={handleClear} className="text-status-error/70 hover:text-status-error transition-colors">
+              <button
+                onClick={handleClear}
+                className="text-status-error/70 hover:text-status-error transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>

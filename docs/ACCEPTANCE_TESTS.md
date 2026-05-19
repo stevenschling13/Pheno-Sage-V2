@@ -1,6 +1,7 @@
 # Acceptance Tests
 
 ## Phase 0: Scaffolding
+
 - [ ] App starts without runtime errors.
 - [ ] Landing page is accessible.
 - [ ] Protected layout shell exists.
@@ -9,6 +10,7 @@
 - [ ] No secrets are exposed in the client bundle.
 
 ## Phase 1: Authentication
+
 - [x] User can sign in with Google.
 - [x] Unauthenticated users are redirected to the Landing page.
 - [x] Auth state persists across refreshes.
@@ -16,6 +18,7 @@
 - [x] Sign out clears the session and redirects to Landing.
 
 ## Phase 2: Grows and Plants
+
 - [x] User can create a new Grow.
 - [x] User can list active Grows.
 - [x] User can edit an existing Grow.
@@ -31,6 +34,7 @@
 - [x] Storage remains deny-all for all paths during Phase 2 (owner-scoped media logic is deferred to Phase 3).
 
 ## Phase 3: Media Architecture
+
 - [ ] User can upload valid image/video to a plant.
 - [ ] User can view uploaded media in the gallery.
 - [ ] Media upload progress is visible.

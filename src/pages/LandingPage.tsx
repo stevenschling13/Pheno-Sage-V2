@@ -1,4 +1,13 @@
-import { Leaf, AlertTriangle, ArrowRight, Loader2, Target, Sprout, Cpu, Database } from 'lucide-react';
+import {
+  Leaf,
+  AlertTriangle,
+  ArrowRight,
+  Loader2,
+  Target,
+  Sprout,
+  Cpu,
+  Database,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -40,7 +49,14 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-brand-bg text-zinc-300 overflow-hidden selection:bg-status-optimal selection:text-brand-bg font-sans flex flex-col">
       {/* Brutalist Grid Background Pattern */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      <div
+        className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
 
       <nav className="relative z-10 flex justify-between items-center px-6 py-4 max-w-7xl mx-auto w-full border-b border-brand-border bg-brand-bg">
         <div className="flex items-center gap-2">
@@ -70,28 +86,33 @@ export default function LandingPage() {
                 {authError || signInError}
               </div>
             )}
-            
+
             <div className="data-label mb-6 border border-brand-border w-fit px-2 py-1 bg-brand-surface flex items-center gap-2">
               <span className="h-1.5 w-1.5 bg-status-optimal" />
               Cultivation Operating System
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-mono text-zinc-100 uppercase tracking-tighter mb-6 leading-none">
               Precision <br />
               <span className="text-zinc-500">Cultivation.</span>
             </h1>
-            
+
             <p className="text-sm font-mono text-zinc-400 max-w-lg mb-10 leading-relaxed uppercase tracking-wider">
-              The professional operating system for structured cultivation logic. Track environmental parameters, visual diagnostics, and longitudinal array data.
+              The professional operating system for structured cultivation logic. Track
+              environmental parameters, visual diagnostics, and longitudinal array data.
             </p>
-            
+
             <div className="flex flex-wrap gap-4">
-              <button 
+              <button
                 onClick={handleSignIn}
                 disabled={signingIn}
                 className="bg-status-optimal text-brand-bg px-6 py-3 text-[11px] font-mono font-bold hover:bg-emerald-400 transition-colors flex items-center gap-3 uppercase tracking-widest disabled:opacity-50"
               >
-                {signingIn ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Database className="w-4 h-4 shrink-0" />}
+                {signingIn ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  <Database className="w-4 h-4 shrink-0" />
+                )}
                 {signingIn ? 'Authenticating...' : 'Initialize Session'}
               </button>
               <button className="border border-brand-border bg-brand-surface text-zinc-400 hover:text-zinc-100 px-6 py-3 text-[11px] font-mono font-bold uppercase tracking-widest transition-colors">
@@ -109,8 +130,10 @@ export default function LandingPage() {
             <div className="w-full max-w-lg mx-auto border border-brand-border bg-brand-surface font-mono overflow-hidden">
               <div className="border-b border-brand-border p-3 bg-brand-bg flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                   <Cpu className="w-4 h-4 text-zinc-500" />
-                   <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">System Capabilities</span>
+                  <Cpu className="w-4 h-4 text-zinc-500" />
+                  <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
+                    System Capabilities
+                  </span>
                 </div>
                 <span className="text-[9px] uppercase tracking-widest text-status-optimal border border-status-optimal/30 bg-status-optimal/10 px-1.5 py-0.5">
                   Phase_7_Live
@@ -119,21 +142,50 @@ export default function LandingPage() {
 
               <div className="p-4 bg-brand-bg space-y-px">
                 {[
-                  { icon: Database, label: "Core Grow Data", val: "Online", color: "text-status-optimal" },
-                  { icon: Target, label: "Media Library Cache", val: "Online", color: "text-status-optimal" },
-                  { icon: Leaf, label: "AI Visual Diagnostics", val: "Online", color: "text-status-optimal" },
-                  { icon: AlertTriangle, label: "Event Pipeline", val: "Online", color: "text-status-optimal" },
-                  { icon: Cpu, label: "Predictive Ledger", val: "Online", color: "text-status-optimal" }
+                  {
+                    icon: Database,
+                    label: 'Core Grow Data',
+                    val: 'Online',
+                    color: 'text-status-optimal',
+                  },
+                  {
+                    icon: Target,
+                    label: 'Media Library Cache',
+                    val: 'Online',
+                    color: 'text-status-optimal',
+                  },
+                  {
+                    icon: Leaf,
+                    label: 'AI Visual Diagnostics',
+                    val: 'Online',
+                    color: 'text-status-optimal',
+                  },
+                  {
+                    icon: AlertTriangle,
+                    label: 'Event Pipeline',
+                    val: 'Online',
+                    color: 'text-status-optimal',
+                  },
+                  {
+                    icon: Cpu,
+                    label: 'Predictive Ledger',
+                    val: 'Online',
+                    color: 'text-status-optimal',
+                  },
                 ].map((item, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className="flex justify-between items-center px-4 py-3 border border-brand-border bg-brand-surface/50 hover:bg-brand-surface transition-colors group"
                   >
                     <div className="flex items-center gap-4">
                       <item.icon className="w-4 h-4 text-zinc-500 group-hover:text-status-optimal transition-colors" />
-                      <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">{item.label}</span>
+                      <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                        {item.label}
+                      </span>
                     </div>
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${item.color}`}>
+                    <span
+                      className={`text-[9px] font-bold uppercase tracking-widest ${item.color}`}
+                    >
                       [{item.val}]
                     </span>
                   </div>
@@ -146,9 +198,13 @@ export default function LandingPage() {
 
       <footer className="relative z-10 border-t border-brand-border bg-brand-surface mt-auto">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-zinc-500 font-mono text-[10px] uppercase tracking-widest gap-4">
-          <div>System Built on <span className="text-zinc-300">&copy; PhenoSage Core v2</span></div>
+          <div>
+            System Built on <span className="text-zinc-300">&copy; PhenoSage Core v2</span>
+          </div>
           <div className="flex gap-6">
-            <span className="hover:text-zinc-300 cursor-pointer transition-colors">Privacy_Protocol</span>
+            <span className="hover:text-zinc-300 cursor-pointer transition-colors">
+              Privacy_Protocol
+            </span>
             <span className="hover:text-zinc-300 cursor-pointer transition-colors">Ops_Manual</span>
             <span className="hover:text-zinc-300 cursor-pointer transition-colors">Sys_Status</span>
           </div>
@@ -157,4 +213,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

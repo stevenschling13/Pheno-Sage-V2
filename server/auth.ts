@@ -6,11 +6,7 @@ export interface AuthedRequest extends Request {
   userEmail: string | null;
 }
 
-export async function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization ?? '';
   const match = /^Bearer\s+(.+)$/i.exec(header);
   if (!match) {

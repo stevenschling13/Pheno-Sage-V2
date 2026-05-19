@@ -1,6 +1,7 @@
 # Agent Rules
 
 ## Non-negotiable rules
+
 1. Read `PROJECT_BRIEF.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `AI_ANALYSIS_SCHEMA.md`, and `ACCEPTANCE_TESTS.md` before major edits.
 2. Do not change the approved architecture unless explicitly asked.
 3. Do not invent Google/Firebase/Gemini APIs. If unsure, say what is unknown and use official docs.
@@ -13,7 +14,9 @@
 10. Do not make medical, legal, dosing, sales, dispensary, or recreational-use claims. Cultivation only.
 
 ## Development behavior
+
 For every task:
+
 1. Restate the exact goal.
 2. List files expected to change.
 3. Implement the smallest working version.
@@ -21,6 +24,7 @@ For every task:
 5. Report changed files and remaining gaps.
 
 ## Anti-drift rules
+
 - No new major package without explaining why.
 - No new collection/table without updating `DATA_MODEL.md`.
 - No new route without updating API documentation.

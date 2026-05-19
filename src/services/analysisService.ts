@@ -27,23 +27,37 @@ interface AnalysisResult {
   safetyCaveats: string;
 }
 
-export async function analyzePlantMedia(userId: string, growId: string, plantId: string, mediaAssetId: string, storagePath: string, mediaType: string) {
+export async function analyzePlantMedia(
+  userId: string,
+  growId: string,
+  plantId: string,
+  mediaAssetId: string,
+  storagePath: string,
+  mediaType: string,
+) {
   const url = await getMediaBlobUrl(storagePath);
   let blob: Blob;
   try {
     const response = await fetch(url);
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
-        throw new Error(`Permission denied (${response.status}) when fetching the media for analysis.`);
+        throw new Error(
+          `Permission denied (${response.status}) when fetching the media for analysis.`,
+        );
       }
       throw new Error(`Server returned ${response.status} when fetching the image/video.`);
     }
     blob = await response.blob();
   } catch (error: any) {
-    if (error.message?.includes('Permission denied') || error.message?.includes('Server returned')) {
+    if (
+      error.message?.includes('Permission denied') ||
+      error.message?.includes('Server returned')
+    ) {
       throw error;
     }
-    throw new Error(`Network error while downloading the media for analysis. Please check your internet connection. Details: ${error.message}`);
+    throw new Error(
+      `Network error while downloading the media for analysis. Please check your internet connection. Details: ${error.message}`,
+    );
   }
 
   const base64data = await new Promise<string>((resolve, reject) => {
@@ -52,9 +66,15 @@ export async function analyzePlantMedia(userId: string, growId: string, plantId:
     reader.onloadend = () => {
       const b64 = reader.result?.toString().split(',')[1];
       if (b64) resolve(b64);
-      else reject(new Error('Failed to convert media for analysis. The file might be corrupted or too large.'));
+      else
+        reject(
+          new Error(
+            'Failed to convert media for analysis. The file might be corrupted or too large.',
+          ),
+        );
     };
-    reader.onerror = () => reject(new Error('Browser error while reading the media file. Please try again.'));
+    reader.onerror = () =>
+      reject(new Error('Browser error while reading the media file. Please try again.'));
   });
 
   const controller = new AbortController();
@@ -80,7 +100,7 @@ export async function analyzePlantMedia(userId: string, growId: string, plantId:
   // 4. Save results to Firestore
   const batch = writeBatch(db);
   const analysisRef = doc(collection(db, 'plant_analyses'));
-  
+
   const findings: AnalysisFinding[] = analysisResult.findings ?? [];
   const { findings: _omit, ...rest } = analysisResult;
   const analysisData = {
@@ -111,6 +131,6 @@ export async function analyzePlantMedia(userId: string, growId: string, plantId:
   }
 
   await batch.commit();
-  
+
   return { id: analysisRef.id, ...analysisData, findings };
 }
