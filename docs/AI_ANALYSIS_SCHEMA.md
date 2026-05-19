@@ -3,6 +3,7 @@
 Every image or video analysis must return structured JSON.
 
 ## Required top-level fields:
+
 - `analysisId`: string
 - `plantId`: string
 - `mediaAssetId`: string
@@ -26,6 +27,7 @@ Every image or video analysis must return structured JSON.
 - `safetyCaveats`: string
 
 ## Rules:
+
 - If media quality is inadequate, return `isFallback=true`.
 - Never fabricate a confident diagnosis from poor media.
 - Findings must include category, severity, confidence, recommendation, and whether human confirmation is required.

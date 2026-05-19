@@ -1,18 +1,18 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  query, 
-  where, 
-  serverTimestamp, 
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+  serverTimestamp,
   orderBy,
   limit,
   Timestamp,
   DocumentData,
-  QuerySnapshot
+  QuerySnapshot,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Grow, Plant, GrowStage } from '../types';
@@ -21,7 +21,10 @@ import { Grow, Plant, GrowStage } from '../types';
  * Grow Services
  */
 
-export const createGrow = async (ownerId: string, data: { name: string, stage: GrowStage, medium: string, startDate: Date }) => {
+export const createGrow = async (
+  ownerId: string,
+  data: { name: string; stage: GrowStage; medium: string; startDate: Date },
+) => {
   if (!db) throw new Error('Firestore not initialized');
   const growsRef = collection(db, 'grows');
   return await addDoc(growsRef, {
@@ -37,13 +40,13 @@ export const getGrows = async (ownerId: string) => {
   if (!db) throw new Error('Firestore not initialized');
   const growsRef = collection(db, 'grows');
   const q = query(
-    growsRef, 
-    where('ownerId', '==', ownerId), 
+    growsRef,
+    where('ownerId', '==', ownerId),
     where('archived', '==', false),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grow));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Grow);
 };
 
 export const getGrowById = async (growId: string) => {
@@ -71,7 +74,11 @@ export const updateGrow = async (growId: string, data: Partial<Grow>) => {
  * Plant Services
  */
 
-export const createPlant = async (ownerId: string, growId: string, data: { name: string, strain: string }) => {
+export const createPlant = async (
+  ownerId: string,
+  growId: string,
+  data: { name: string; strain: string },
+) => {
   if (!db) throw new Error('Firestore not initialized');
   const plantsRef = collection(db, 'plants');
   return await addDoc(plantsRef, {
@@ -88,27 +95,27 @@ export const getPlantsByGrow = async (ownerId: string, growId: string) => {
   if (!db) throw new Error('Firestore not initialized');
   const plantsRef = collection(db, 'plants');
   const q = query(
-    plantsRef, 
-    where('ownerId', '==', ownerId), 
+    plantsRef,
+    where('ownerId', '==', ownerId),
     where('growId', '==', growId),
     where('archived', '==', false),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plant));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Plant);
 };
 
 export const getAllPlants = async (ownerId: string) => {
   if (!db) throw new Error('Firestore not initialized');
   const plantsRef = collection(db, 'plants');
   const q = query(
-    plantsRef, 
-    where('ownerId', '==', ownerId), 
+    plantsRef,
+    where('ownerId', '==', ownerId),
     where('archived', '==', false),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plant));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Plant);
 };
 
 export const getPlantById = async (plantId: string) => {
@@ -121,16 +128,17 @@ export const getPlantById = async (plantId: string) => {
   return null;
 };
 
-export const getPlantMedia = async (plantId: string) => {
+export const getPlantMedia = async (ownerId: string, plantId: string) => {
   if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, 'media_assets'),
+    where('ownerId', '==', ownerId),
     where('plantId', '==', plantId),
     where('uploadStatus', '==', 'uploaded'),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as any);
 };
 
 export const updatePlant = async (plantId: string, data: Partial<Plant>) => {
