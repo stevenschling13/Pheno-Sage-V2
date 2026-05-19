@@ -1,9 +1,33 @@
 import { db } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
 import { getMediaBlobUrl } from './mediaService';
+import { apiPost, ApiError } from '../lib/apiClient';
+
+interface AnalysisFinding {
+  category?: string;
+  severity?: string;
+  confidence?: number;
+  title?: string;
+  recommendation?: string;
+}
+
+interface AnalysisResult {
+  isFallback: boolean;
+  fallbackReason?: string;
+  overallHealthScore: number;
+  confidenceScore: number;
+  estimatedStage: string;
+  stageConfidence: number;
+  imageQuality: string;
+  visualObservations: string[];
+  diagnosticHypotheses: string[];
+  findings: AnalysisFinding[];
+  recommendations: string[];
+  suggestedTasks: string[];
+  safetyCaveats: string;
+}
 
 export async function analyzePlantMedia(userId: string, growId: string, plantId: string, mediaAssetId: string, storagePath: string, mediaType: string) {
-  // 1. Download media blob
   const url = await getMediaBlobUrl(storagePath);
   let blob: Blob;
   try {
@@ -16,62 +40,51 @@ export async function analyzePlantMedia(userId: string, growId: string, plantId:
     }
     blob = await response.blob();
   } catch (error: any) {
-    if (error.message.includes('Permission denied') || error.message.includes('Server returned')) {
+    if (error.message?.includes('Permission denied') || error.message?.includes('Server returned')) {
       throw error;
     }
     throw new Error(`Network error while downloading the media for analysis. Please check your internet connection. Details: ${error.message}`);
   }
-  
-  // 2. Convert blob to base64
+
   const base64data = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = () => {
       const b64 = reader.result?.toString().split(',')[1];
       if (b64) resolve(b64);
-      else reject(new Error("Failed to convert media for analysis. The file might be corrupted or too large."));
+      else reject(new Error('Failed to convert media for analysis. The file might be corrupted or too large.'));
     };
-    reader.onerror = () => reject(new Error("Browser error while reading the media file. Please try again."));
+    reader.onerror = () => reject(new Error('Browser error while reading the media file. Please try again.'));
   });
 
-  // 3. Send to Server API
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 60_000);
 
-  let response;
+  let analysisResult: AnalysisResult;
   try {
-    response = await fetch('/api/analyze-plant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mediaBase64: base64data,
-        mimeType: blob.type,
-        isVideo: mediaType === 'video'
-      }),
-      signal: controller.signal
-    });
+    analysisResult = await apiPost<AnalysisResult>(
+      '/api/analyze-plant',
+      { mediaBase64: base64data, mimeType: blob.type, isVideo: mediaType === 'video' },
+      controller.signal,
+    );
   } catch (error: any) {
-    if (error.name === 'AbortError') {
-      throw new Error('Analysis request timed out. The request took too long to complete. Please try again.');
+    if (error?.name === 'AbortError') {
+      throw new Error('Analysis request timed out. Please try again.');
     }
+    if (error instanceof ApiError) throw new Error(error.message);
     throw new Error(`Network issue while requesting AI analysis: ${error.message}`);
   } finally {
     clearTimeout(timeoutId);
   }
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to analyze plant');
-  }
-
-  const analysisResult = await response.json();
-
   // 4. Save results to Firestore
   const batch = writeBatch(db);
   const analysisRef = doc(collection(db, 'plant_analyses'));
   
+  const findings: AnalysisFinding[] = analysisResult.findings ?? [];
+  const { findings: _omit, ...rest } = analysisResult;
   const analysisData = {
-    ...analysisResult,
+    ...rest,
     userId,
     growId,
     plantId,
@@ -80,12 +93,8 @@ export async function analyzePlantMedia(userId: string, growId: string, plantId:
     analyzedAt: serverTimestamp(),
     createdAt: serverTimestamp(),
     archived: false,
-    // Extracting findings into a separate collection as per spec, but storing summary here
   };
 
-  const findings = analysisResult.findings || [];
-  delete analysisData.findings; // remove from main doc to normalize
-  
   batch.set(analysisRef, analysisData);
 
   for (const finding of findings) {

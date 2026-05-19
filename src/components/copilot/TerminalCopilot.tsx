@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, ShieldAlert, CheckCircle2, ChevronRight, Activity, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { apiPost, ApiError } from '../../lib/apiClient';
 
 export interface LedgerEntry {
   id: string;
@@ -15,6 +16,8 @@ export interface LedgerEntry {
   status: 'pending' | 'complete' | 'error';
   error?: string;
 }
+
+type CopilotResponse = NonNullable<LedgerEntry['response']>;
 
 // Mock history data to send to the copilot so it has context for pushback.
 // In a real app this would be pulled from Firestore (environment sensors & grow logs)
@@ -54,31 +57,21 @@ export function CopilotTerminal() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: newEntry.input,
-          history: MOCK_HISTORY
-        })
+      const data = await apiPost<CopilotResponse>('/api/copilot', {
+        input: newEntry.input,
+        history: MOCK_HISTORY,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to process request');
-      }
-
-      const data = await res.json();
-      
-      setEntries(prev => prev.map(entry => 
-        entry.id === newEntry.id 
-          ? { ...entry, status: 'complete', response: data } 
+      setEntries(prev => prev.map(entry =>
+        entry.id === newEntry.id
+          ? { ...entry, status: 'complete', response: data }
           : entry
       ));
     } catch (err: any) {
-      setEntries(prev => prev.map(entry => 
-        entry.id === newEntry.id 
-          ? { ...entry, status: 'error', error: err.message } 
+      const message = err instanceof ApiError ? err.message : err?.message ?? 'Failed to process request';
+      setEntries(prev => prev.map(entry =>
+        entry.id === newEntry.id
+          ? { ...entry, status: 'error', error: message }
           : entry
       ));
     } finally {

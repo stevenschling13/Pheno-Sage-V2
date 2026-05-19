@@ -40,7 +40,7 @@ export default function PlantDetailPage() {
   const { growId, plantId } = useParams<{ growId: string, plantId: string }>();
   const { user } = useAuth();
   const [plant, setPlant] = useState<Plant | null>(null);
-  const [media, setMedia] = useState<MediaAsset[]>([]);
+  const [media, setMedia] = useState<Array<MediaAsset & { url?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false);
@@ -132,10 +132,10 @@ export default function PlantDetailPage() {
           getPlantMedia(plantId)
         ]);
         
-        let hydratedMedia = [];
+        let hydratedMedia: Array<MediaAsset & { url?: string }> = [];
         if (m && m.length > 0) {
           const { getMediaBlobUrl } = await import('../services/mediaService');
-          hydratedMedia = await Promise.all(m.map(async (asset: any) => {
+          hydratedMedia = await Promise.all(m.map(async (asset: MediaAsset) => {
             try {
               if (asset.mediaType === 'image' || asset.mediaType === 'video') {
                 const url = await getMediaBlobUrl(asset.storagePath);

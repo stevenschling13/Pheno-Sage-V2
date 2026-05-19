@@ -11,6 +11,7 @@ import { LedgerExportCard } from '../components/generative/LedgerExportCard';
 import { PrintableGrowJournal } from '../components/print/PrintableGrowJournal';
 import { createGrow, createPlant } from '../services/firestoreService';
 import { useAuth } from '../contexts/AuthContext';
+import { apiPost, ApiError } from '../lib/apiClient';
 
 type FeedItem = {
   id: string;
@@ -22,7 +23,7 @@ type FeedItem = {
 };
 
 export default function CommandConsole() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -76,29 +77,7 @@ export default function CommandConsole() {
     setFeed(prev => [...prev, { id: `u-${newItemId}`, role: 'user', content: userEntry }]);
 
     try {
-      const response = await fetch('/api/orchestrator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: userEntry }),
-      });
-
-      if (!response.ok) {
-        let errorMessage = `HTTP Error ${response.status}: Failed to communicate with orchestrator.`;
-        try {
-          const errorData = await response.json();
-          if (errorData.error) {
-            errorMessage = `API Error: ${errorData.error}`;
-          } else if (errorData.message) {
-            errorMessage = `API Error: ${errorData.message}`;
-          }
-        } catch (e) {
-          // If response is not JSON, fallback to standard error message
-        }
-        throw new Error(errorMessage);
-      }
-
-      const rawResponse = await response.json();
-      
+      const rawResponse = await apiPost<any>('/api/orchestrator', { input: userEntry });
       const responseText = `[${rawResponse.agent} Agent] Processing request via ${rawResponse.component_type} sequence.`;
 
           setFeed(prev => [
@@ -119,9 +98,13 @@ export default function CommandConsole() {
       ]);
     } catch (err: any) {
       console.error(err);
-      
-      const errorMsg = err instanceof Error ? err.message : 'ERR_CONNECTION_REFUSED: Failed to communicate with orchestrator.';
-      
+      const errorMsg =
+        err instanceof ApiError
+          ? `API Error: ${err.message}`
+          : err instanceof Error
+            ? err.message
+            : 'ERR_CONNECTION_REFUSED: Failed to communicate with orchestrator.';
+
       setFeed(prev => [
         ...prev,
         { id: `err-${newItemId}`, role: 'agent', content: errorMsg }
@@ -134,10 +117,10 @@ export default function CommandConsole() {
   const handleApprove = async (actionData: any) => {
     if (actionData?.strain) {
       try {
-        if (!currentUser) throw new Error("No user authenticated");
+        if (!user) throw new Error("No user authenticated");
         setFeed(prev => [...prev, { id: `sys-${Date.now()}-1`, role: 'agent', content: 'Processing approval and provisioning databases...' }]);
         
-        const grow = await createGrow(currentUser.uid, {
+        const grow = await createGrow(user.uid, {
           name: `${actionData.strain} Grow`,
           stage: 'Seedling',
           medium: actionData.medium || 'Unknown',
@@ -148,7 +131,7 @@ export default function CommandConsole() {
         if (isNaN(count)) count = 1;
 
         for (let i = 0; i < count; i++) {
-           await createPlant(currentUser.uid, grow.id, {
+           await createPlant(user.uid, grow.id, {
               name: `${actionData.strain} #${i+1}`,
               strain: actionData.strain
            });
@@ -218,20 +201,10 @@ export default function CommandConsole() {
        setFeed(prev => [...prev, { id: `u-${newItemId}`, role: 'user', content: `[MEDIA INGEST: ${file.name}]`, mediaUrl: dataUrl }]);
        
        try {
-           const response = await fetch('/api/orchestrator', {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({
-                   input: "",
-                   mediaBase64: base64Data,
-                   mimeType: file.type
-               }),
+           const rawResponse = await apiPost<any>('/api/orchestrator', {
+               mediaBase64: base64Data,
+               mimeType: file.type,
            });
-           
-           if (!response.ok) throw new Error("API responded with an error");
-           
-           const rawResponse = await response.json();
-           
            const responseText = `[${rawResponse.agent} Agent] Processing request via ${rawResponse.component_type} sequence.`;
 
            setFeed(prev => [
