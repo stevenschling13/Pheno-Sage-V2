@@ -1,14 +1,4 @@
-import {
-  LayoutDashboard,
-  Leaf,
-  Sprout,
-  LogOut,
-  Camera,
-  MessageSquare,
-  AlertTriangle,
-  Loader2,
-  Terminal,
-} from 'lucide-react';
+import { LayoutDashboard, Leaf, Sprout, LogOut, Camera, MessageSquare, AlertTriangle, Loader2, Terminal } from 'lucide-react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -46,10 +36,10 @@ export default function ProtectedLayout() {
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 rounded border border-brand-border bg-brand-bg px-2 py-1">
-            <div className="h-1.5 w-1.5 rounded-full bg-status-optimal animate-pulse"></div>
-            <span className="data-label text-[9px] !text-zinc-400">SYS_ONLINE</span>
+             <div className="h-1.5 w-1.5 rounded-full bg-status-optimal animate-pulse"></div>
+             <span className="data-label text-[9px] !text-zinc-400">SYS_ONLINE</span>
           </div>
-          <button
+          <button 
             onClick={() => signOut()}
             className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors"
           >
@@ -71,8 +61,8 @@ export default function ProtectedLayout() {
                   key={item.path}
                   to={item.path}
                   className={`flex w-full items-center gap-3 rounded p-2 text-xs font-mono transition-colors ${
-                    isActive
-                      ? 'bg-brand-surface text-status-optimal border border-brand-border'
+                    isActive 
+                      ? 'bg-brand-surface text-status-optimal border border-brand-border' 
                       : 'text-zinc-400 hover:bg-brand-surface border border-transparent'
                   }`}
                 >
@@ -81,14 +71,14 @@ export default function ProtectedLayout() {
                 </Link>
               );
             })}
-
+            
             <div className="my-6 h-px bg-brand-border"></div>
-
+            
             <div className="mb-4 px-2 data-label">Tools</div>
             <div className="flex w-full items-center gap-3 rounded p-2 text-xs font-mono text-zinc-600 cursor-not-allowed">
               <Camera className="h-4 w-4" /> Visual Doctor
             </div>
-            <Link
+            <Link 
               to="/copilot"
               className={`flex w-full items-center gap-3 rounded p-2 text-xs font-mono transition-colors ${
                 location.pathname === '/copilot'
@@ -127,7 +117,7 @@ export default function ProtectedLayout() {
           );
         })}
       </nav>
-
+      
       {/* Footer Status Bar (Desktop Only) */}
       <footer className="hidden md:flex h-6 items-center justify-between border-t border-brand-border bg-brand-bg px-4 !text-[10px] uppercase font-mono text-zinc-500 tracking-wider print:hidden">
         <div className="flex items-center gap-6">
@@ -141,7 +131,7 @@ export default function ProtectedLayout() {
           </span>
         </div>
         <div>
-          {user.email} <span className="mx-2 text-zinc-700">|</span> SESSION ACTIVE
+           {user.email} <span className="mx-2 text-zinc-700">|</span> SESSION ACTIVE
         </div>
       </footer>
     </div>

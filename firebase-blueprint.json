@@ -22,10 +22,7 @@
         "id": { "type": "string" },
         "ownerId": { "type": "string", "description": "UID of the owner" },
         "name": { "type": "string" },
-        "stage": {
-          "type": "string",
-          "enum": ["Germination", "Seedling", "Vegetative", "Flower", "Harvested"]
-        },
+        "stage": { "type": "string", "enum": ["Germination", "Seedling", "Vegetative", "Flower", "Harvested"] },
         "medium": { "type": "string" },
         "lightType": { "type": "string" },
         "startDate": { "type": "string", "format": "date-time" },

@@ -11,26 +11,18 @@ import { LedgerExportCard } from '../components/generative/LedgerExportCard';
 import { PrintableGrowJournal } from '../components/print/PrintableGrowJournal';
 import { createGrow, createPlant } from '../services/firestoreService';
 import { useAuth } from '../contexts/AuthContext';
-import { apiPost, ApiError } from '../lib/apiClient';
 
 type FeedItem = {
   id: string;
   role: 'user' | 'agent';
   content?: string;
-  componentType?:
-    | 'MORNING_BRIEFING'
-    | 'GROW_SETUP'
-    | 'WALKTHROUGH_REPORT'
-    | 'OCR_CAPTURE'
-    | 'PHENOTYPE_LINEAGE'
-    | 'HARVEST_FORECAST'
-    | 'LEDGER_EXPORT';
+  componentType?: 'MORNING_BRIEFING' | 'GROW_SETUP' | 'WALKTHROUGH_REPORT' | 'OCR_CAPTURE' | 'PHENOTYPE_LINEAGE' | 'HARVEST_FORECAST' | 'LEDGER_EXPORT';
   data?: any;
   mediaUrl?: string;
 };
 
 export default function CommandConsole() {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -49,8 +41,8 @@ export default function CommandConsole() {
         quantity: 4,
         medium: 'Coco Coir',
         tent_size: '4x4',
-        nutrient_line: 'Lotus Nutrients',
-      },
+        nutrient_line: 'Lotus Nutrients'
+      }
     },
     {
       id: 'second-setup-card',
@@ -61,11 +53,11 @@ export default function CommandConsole() {
         quantity: 6,
         medium: 'Hydroponic',
         tent_size: '3x3',
-        nutrient_line: 'Lotus Nutrients',
-      },
-    },
+        nutrient_line: 'Lotus Nutrients'
+      }
+    }
   ]);
-
+  
   const feedEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,45 +73,59 @@ export default function CommandConsole() {
     setIsProcessing(true);
 
     const newItemId = Date.now().toString();
-    setFeed((prev) => [...prev, { id: `u-${newItemId}`, role: 'user', content: userEntry }]);
+    setFeed(prev => [...prev, { id: `u-${newItemId}`, role: 'user', content: userEntry }]);
 
     try {
-      const rawResponse = await apiPost<any>('/api/orchestrator', { input: userEntry });
+      const response = await fetch('/api/orchestrator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: userEntry }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = `HTTP Error ${response.status}: Failed to communicate with orchestrator.`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = `API Error: ${errorData.error}`;
+          } else if (errorData.message) {
+            errorMessage = `API Error: ${errorData.message}`;
+          }
+        } catch (e) {
+          // If response is not JSON, fallback to standard error message
+        }
+        throw new Error(errorMessage);
+      }
+
+      const rawResponse = await response.json();
+      
       const responseText = `[${rawResponse.agent} Agent] Processing request via ${rawResponse.component_type} sequence.`;
 
-      setFeed((prev) => [
-        ...prev,
-        {
-          id: `a-${newItemId}`,
-          role: 'agent',
+          setFeed(prev => [
+        ...prev, 
+        { 
+          id: `a-${newItemId}`, 
+          role: 'agent', 
           content: responseText,
           componentType: rawResponse.component_type as any,
-          data:
-            rawResponse.component_type === 'GROW_SETUP'
-              ? rawResponse.setup_data
-              : rawResponse.component_type === 'OCR_CAPTURE'
-                ? rawResponse.ocr_data
-                : rawResponse.component_type === 'WALKTHROUGH_REPORT'
-                  ? rawResponse.walkthrough_data
-                  : rawResponse.component_type === 'PHENOTYPE_LINEAGE'
-                    ? rawResponse.lineage_data
-                    : rawResponse.component_type === 'HARVEST_FORECAST'
-                      ? rawResponse.harvest_data
-                      : rawResponse.component_type === 'LEDGER_EXPORT'
-                        ? rawResponse.export_data
-                        : rawResponse.briefing_data,
-        },
+          data: rawResponse.component_type === 'GROW_SETUP' ? rawResponse.setup_data : 
+                rawResponse.component_type === 'OCR_CAPTURE' ? rawResponse.ocr_data :
+                rawResponse.component_type === 'WALKTHROUGH_REPORT' ? rawResponse.walkthrough_data :
+                rawResponse.component_type === 'PHENOTYPE_LINEAGE' ? rawResponse.lineage_data :
+                rawResponse.component_type === 'HARVEST_FORECAST' ? rawResponse.harvest_data :
+                rawResponse.component_type === 'LEDGER_EXPORT' ? rawResponse.export_data :
+                rawResponse.briefing_data
+        }
       ]);
     } catch (err: any) {
       console.error(err);
-      const errorMsg =
-        err instanceof ApiError
-          ? `API Error: ${err.message}`
-          : err instanceof Error
-            ? err.message
-            : 'ERR_CONNECTION_REFUSED: Failed to communicate with orchestrator.';
-
-      setFeed((prev) => [...prev, { id: `err-${newItemId}`, role: 'agent', content: errorMsg }]);
+      
+      const errorMsg = err instanceof Error ? err.message : 'ERR_CONNECTION_REFUSED: Failed to communicate with orchestrator.';
+      
+      setFeed(prev => [
+        ...prev,
+        { id: `err-${newItemId}`, role: 'agent', content: errorMsg }
+      ]);
     } finally {
       setIsProcessing(false);
     }
@@ -128,62 +134,50 @@ export default function CommandConsole() {
   const handleApprove = async (actionData: any) => {
     if (actionData?.strain) {
       try {
-        if (!user) throw new Error('No user authenticated');
-        setFeed((prev) => [
-          ...prev,
-          {
-            id: `sys-${Date.now()}-1`,
-            role: 'agent',
-            content: 'Processing approval and provisioning databases...',
-          },
-        ]);
-
-        const grow = await createGrow(user.uid, {
+        if (!currentUser) throw new Error("No user authenticated");
+        setFeed(prev => [...prev, { id: `sys-${Date.now()}-1`, role: 'agent', content: 'Processing approval and provisioning databases...' }]);
+        
+        const grow = await createGrow(currentUser.uid, {
           name: `${actionData.strain} Grow`,
           stage: 'Seedling',
           medium: actionData.medium || 'Unknown',
-          startDate: new Date(),
+          startDate: new Date()
         });
 
         let count = actionData.quantity ? Number(actionData.quantity) : 1;
         if (isNaN(count)) count = 1;
 
-        await Promise.all(
-          Array.from({ length: count }, (_, i) =>
-            createPlant(user.uid, grow.id, {
-              name: `${actionData.strain} #${i + 1}`,
-              strain: actionData.strain,
-            }),
-          ),
-        );
+        for (let i = 0; i < count; i++) {
+           await createPlant(currentUser.uid, grow.id, {
+              name: `${actionData.strain} #${i+1}`,
+              strain: actionData.strain
+           });
+        }
 
-        setFeed((prev) => [
-          ...prev,
-          {
-            id: `sys-${Date.now()}-2`,
-            role: 'agent',
-            content: `Execution Approved. System initialized grow record [${grow.id}] with ${count} entities.`,
-          },
+        setFeed(prev => [
+         ...prev,
+         {
+           id: `sys-${Date.now()}-2`,
+           role: 'agent',
+           content: `Execution Approved. System initialized grow record [${grow.id}] with ${count} entities.`
+         }
         ]);
+
       } catch (err) {
         console.error(err);
-        setFeed((prev) => [
-          ...prev,
-          {
-            id: `err-${Date.now()}`,
-            role: 'agent',
-            content: `ERR_DB_WRITE: Failed to provision grow record.`,
-          },
+        setFeed(prev => [
+           ...prev,
+           { id: `err-${Date.now()}`, role: 'agent', content: `ERR_DB_WRITE: Failed to provision grow record.` }
         ]);
       }
     } else {
-      setFeed((prev) => [
+      setFeed(prev => [
         ...prev,
         {
           id: `sys-${Date.now()}`,
           role: 'agent',
-          content: `Execution Approved. System updating record: ${JSON.stringify(actionData)}`,
-        },
+          content: `Execution Approved. System updating record: ${JSON.stringify(actionData)}`
+        }
       ]);
     }
   };
@@ -201,92 +195,73 @@ export default function CommandConsole() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
+    
     if (isProcessing) return;
 
     const file = e.dataTransfer.files[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-      setFeed((prev) => [
-        ...prev,
-        {
-          id: `err-${Date.now()}`,
-          role: 'agent',
-          content: 'ERR_UNSUPPORTED_MEDIA: Please upload an image or video.',
-        },
-      ]);
-      return;
+       setFeed(prev => [...prev, { id: `err-${Date.now()}`, role: 'agent', content: 'ERR_UNSUPPORTED_MEDIA: Please upload an image or video.' }]);
+       return;
     }
 
     setIsProcessing(true);
-
+    
     const newItemId = Date.now().toString();
 
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const dataUrl = event.target?.result as string;
-      const base64Data = dataUrl.split(',')[1];
+       const dataUrl = event.target?.result as string;
+       const base64Data = dataUrl.split(',')[1];
 
-      setFeed((prev) => [
-        ...prev,
-        {
-          id: `u-${newItemId}`,
-          role: 'user',
-          content: `[MEDIA INGEST: ${file.name}]`,
-          mediaUrl: dataUrl,
-        },
-      ]);
+       setFeed(prev => [...prev, { id: `u-${newItemId}`, role: 'user', content: `[MEDIA INGEST: ${file.name}]`, mediaUrl: dataUrl }]);
+       
+       try {
+           const response = await fetch('/api/orchestrator', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                   input: "",
+                   mediaBase64: base64Data,
+                   mimeType: file.type
+               }),
+           });
+           
+           if (!response.ok) throw new Error("API responded with an error");
+           
+           const rawResponse = await response.json();
+           
+           const responseText = `[${rawResponse.agent} Agent] Processing request via ${rawResponse.component_type} sequence.`;
 
-      try {
-        const rawResponse = await apiPost<any>('/api/orchestrator', {
-          mediaBase64: base64Data,
-          mimeType: file.type,
-        });
-        const responseText = `[${rawResponse.agent} Agent] Processing request via ${rawResponse.component_type} sequence.`;
-
-        setFeed((prev) => [
-          ...prev,
-          {
-            id: `a-${newItemId}`,
-            role: 'agent',
-            content: responseText,
-            componentType: rawResponse.component_type as any,
-            data:
-              rawResponse.component_type === 'GROW_SETUP'
-                ? rawResponse.setup_data
-                : rawResponse.component_type === 'OCR_CAPTURE'
-                  ? rawResponse.ocr_data
-                  : rawResponse.component_type === 'WALKTHROUGH_REPORT'
-                    ? rawResponse.walkthrough_data
-                    : rawResponse.component_type === 'PHENOTYPE_LINEAGE'
-                      ? rawResponse.lineage_data
-                      : rawResponse.component_type === 'HARVEST_FORECAST'
-                        ? rawResponse.harvest_data
-                        : rawResponse.component_type === 'LEDGER_EXPORT'
-                          ? rawResponse.export_data
-                          : rawResponse.briefing_data,
-            mediaUrl: dataUrl,
-          },
-        ]);
-      } catch (err: any) {
-        setFeed((prev) => [
-          ...prev,
-          {
-            id: `err-${newItemId}`,
-            role: 'agent',
-            content: err.message || 'Failed to process media',
-          },
-        ]);
-      } finally {
-        setIsProcessing(false);
-      }
+           setFeed(prev => [
+             ...prev, 
+             { 
+               id: `a-${newItemId}`, 
+               role: 'agent', 
+               content: responseText,
+               componentType: rawResponse.component_type as any,
+               data: rawResponse.component_type === 'GROW_SETUP' ? rawResponse.setup_data : 
+                     rawResponse.component_type === 'OCR_CAPTURE' ? rawResponse.ocr_data :
+                     rawResponse.component_type === 'WALKTHROUGH_REPORT' ? rawResponse.walkthrough_data :
+                     rawResponse.component_type === 'PHENOTYPE_LINEAGE' ? rawResponse.lineage_data :
+                     rawResponse.component_type === 'HARVEST_FORECAST' ? rawResponse.harvest_data :
+                     rawResponse.component_type === 'LEDGER_EXPORT' ? rawResponse.export_data :
+                     rawResponse.briefing_data,
+               mediaUrl: dataUrl
+             }
+           ]);
+       } catch (err: any) {
+           setFeed(prev => [...prev, { id: `err-${newItemId}`, role: 'agent', content: err.message || "Failed to process media" }]);
+       } finally {
+           setIsProcessing(false);
+       }
     };
     reader.readAsDataURL(file);
   };
 
   return (
-    <div
+    <div 
       className={`flex flex-col h-[calc(100vh-8rem)] print:h-auto bg-[#09090b] print:bg-white rounded-none border print:border-none transition-colors overflow-hidden print:overflow-visible font-mono relative ${isDragging ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-zinc-800'}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -302,99 +277,79 @@ export default function CommandConsole() {
       {/* Feed Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 print:hidden">
         {feed.map((item) => (
-          <div
-            key={item.id}
-            className={`flex flex-col ${item.role === 'user' ? 'items-end' : 'items-start'}`}
-          >
+          <div key={item.id} className={`flex flex-col ${item.role === 'user' ? 'items-end' : 'items-start'}`}>
             <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider text-zinc-500 font-mono">
               {item.role === 'user' ? (
-                <>
-                  User <Terminal className="h-3 w-3" />
-                </>
+                <>User <Terminal className="h-3 w-3" /></>
               ) : (
-                <>
-                  <Terminal className="h-3 w-3" /> System
-                </>
+                <><Terminal className="h-3 w-3" /> System</>
               )}
             </div>
-
+            
             {item.content && (
-              <div
-                className={`px-4 py-3 rounded-none max-w-2xl font-mono text-sm leading-relaxed ${
-                  item.role === 'user'
-                    ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
-                    : 'text-zinc-400'
-                }`}
-              >
+              <div className={`px-4 py-3 rounded-none max-w-2xl font-mono text-sm leading-relaxed ${
+                item.role === 'user' 
+                  ? 'bg-zinc-800 text-zinc-100 border border-zinc-700' 
+                  : 'text-zinc-400'
+              }`}>
                 {item.content}
               </div>
             )}
-
+            
             {item.componentType === 'MORNING_BRIEFING' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <MorningBriefing
-                  observations={item.data.observations || []}
-                  pendingApprovals={item.data.pending_approvals || []}
-                  onApprove={(appr) => handleApprove(appr)}
-                />
+                 <MorningBriefing 
+                   observations={item.data.observations || []} 
+                   pendingApprovals={item.data.pending_approvals || []} 
+                   onApprove={(appr) => handleApprove(appr)}
+                 />
               </div>
             )}
 
             {item.componentType === 'GROW_SETUP' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <GrowSetupCard initialData={item.data} onApprove={(data) => handleApprove(data)} />
+                 <GrowSetupCard 
+                   initialData={item.data}
+                   onApprove={(data) => handleApprove(data)}
+                 />
               </div>
             )}
 
             {item.componentType === 'WALKTHROUGH_REPORT' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <WalkthroughReportCard
-                  data={item.data}
-                  mediaUrl={item.mediaUrl}
-                  onApprove={() => handleApprove({ type: 'WALKTHROUGH_LOG', ...item.data })}
-                />
+                 <WalkthroughReportCard data={item.data} mediaUrl={item.mediaUrl} onApprove={() => handleApprove({ type: 'WALKTHROUGH_LOG', ...item.data })} />
               </div>
             )}
 
             {item.componentType === 'OCR_CAPTURE' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <OcrCaptureCard
-                  data={item.data}
-                  mediaUrl={item.mediaUrl}
-                  onApprove={() => handleApprove({ type: 'OCR_LOG', ...item.data })}
-                />
+                 <OcrCaptureCard data={item.data} mediaUrl={item.mediaUrl} onApprove={() => handleApprove({ type: 'OCR_LOG', ...item.data })} />
               </div>
             )}
 
             {item.componentType === 'PHENOTYPE_LINEAGE' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <PhenotypeLineageCard
-                  data={item.data}
-                  onApprove={() => handleApprove({ type: 'LINEAGE_APPEND', ...item.data })}
-                />
+                 <PhenotypeLineageCard data={item.data} onApprove={() => handleApprove({ type: 'LINEAGE_APPEND', ...item.data })} />
               </div>
             )}
 
             {item.componentType === 'HARVEST_FORECAST' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <HarvestYieldForecastCard
-                  data={item.data}
-                  onApprove={() => handleApprove({ type: 'HARVEST_LOG', ...item.data })}
-                />
+                 <HarvestYieldForecastCard data={item.data} onApprove={() => handleApprove({ type: 'HARVEST_LOG', ...item.data })} />
               </div>
             )}
 
             {item.componentType === 'LEDGER_EXPORT' && item.data && (
               <div className="mt-4 w-full flex justify-start">
-                <LedgerExportCard data={item.data} onGenerate={() => window.print()} />
+                 <LedgerExportCard data={item.data} onGenerate={() => window.print()} />
               </div>
             )}
           </div>
         ))}
         {isProcessing && (
-          <div className="flex flex-col items-start w-full">
-            <ProcessingConsole />
-          </div>
+           <div className="flex flex-col items-start w-full">
+              <ProcessingConsole />
+           </div>
         )}
         <div ref={feedEndRef} />
       </div>
@@ -403,8 +358,8 @@ export default function CommandConsole() {
       <div className="p-4 border-t border-brand-border bg-brand-surface print:hidden">
         <form onSubmit={handleSubmit} className="relative flex items-center">
           <Terminal className="absolute left-4 h-5 w-5 text-zinc-500" />
-          <input
-            type="text"
+          <input 
+            type="text" 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isProcessing}
@@ -412,8 +367,8 @@ export default function CommandConsole() {
             className="w-full bg-[#09090b] text-zinc-100 border border-zinc-800 rounded-none py-3 pl-12 pr-12 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 font-mono text-sm placeholder:text-zinc-600 transition-all disabled:opacity-50"
             autoFocus
           />
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             disabled={isProcessing || !input.trim()}
             className="absolute right-3 p-1.5 text-zinc-500 hover:text-zinc-300 disabled:opacity-50 transition-colors"
           >
@@ -423,7 +378,7 @@ export default function CommandConsole() {
       </div>
 
       <div className="print-container print:block hidden print:relative bg-white text-black pb-8">
-        <PrintableGrowJournal />
+         <PrintableGrowJournal />
       </div>
     </div>
   );

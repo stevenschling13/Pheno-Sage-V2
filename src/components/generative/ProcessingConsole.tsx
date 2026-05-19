@@ -8,7 +8,7 @@ const genericLogs = [
   '[SYS] Extracting visual/textual features...',
   '[SYS] Cross-referencing findings with longitudinal vectors...',
   '[AGENTS] Constructing component trigger...',
-  '[SYS] Finalizing generative UI response...',
+  '[SYS] Finalizing generative UI response...'
 ];
 
 export function ProcessingConsole() {
@@ -18,28 +18,26 @@ export function ProcessingConsole() {
   useEffect(() => {
     let index = 0;
     const interval = setInterval(() => {
-      if (index < genericLogs.length) {
-        setLogs((prev) => [...prev, genericLogs[index]]);
-        index++;
-      }
+        if (index < genericLogs.length) {
+             setLogs(prev => [...prev, genericLogs[index]]);
+             index++;
+        }
     }, 1200);
     return () => clearInterval(interval);
   }, []);
-
+  
   useEffect(() => {
-    const dotInterval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
-    }, 400);
-    return () => clearInterval(dotInterval);
+      const dotInterval = setInterval(() => {
+          setDots(prev => prev.length >= 3 ? '' : prev + '.');
+      }, 400);
+      return () => clearInterval(dotInterval);
   }, []);
 
   return (
     <div className="w-full bg-[#09090b] border border-[#27272a] rounded p-4 font-mono text-xs text-zinc-400">
       <div className="flex items-center gap-2 mb-3 text-zinc-500 border-b border-[#27272a] pb-2">
         <Terminal className="w-4 h-4 text-emerald-500" />
-        <span className="uppercase tracking-widest text-[10px] text-emerald-500">
-          System Processing
-        </span>
+        <span className="uppercase tracking-widest text-[10px] text-emerald-500">System Processing</span>
       </div>
       <div className="space-y-1">
         {logs.map((log, i) => (
@@ -55,13 +53,8 @@ export function ProcessingConsole() {
             {log}
           </motion.div>
         ))}
-        <motion.div
-          animate={{ opacity: [1, 0.5, 1] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-emerald-500 mt-2"
-        >
-          {logs.length === 0 ? 'Evaluating payload' : 'Awaiting orchestrator response'}
-          {dots}
+        <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-emerald-500 mt-2">
+          {logs.length === 0 ? 'Evaluating payload' : 'Awaiting orchestrator response'}{dots}
         </motion.div>
       </div>
     </div>

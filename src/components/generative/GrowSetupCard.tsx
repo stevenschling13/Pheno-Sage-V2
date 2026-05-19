@@ -25,10 +25,8 @@ export default function GrowSetupCard({ initialData, onApprove }: GrowSetupCardP
   return (
     <div className="w-full max-w-2xl border border-zinc-800 bg-[#09090b] rounded-none shadow-sm text-zinc-300 font-mono text-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
-        <span className="text-xs uppercase tracking-wider text-zinc-500 font-bold">
-          Grow Initialization Setup
-        </span>
-        <button
+        <span className="text-xs uppercase tracking-wider text-zinc-500 font-bold">Grow Initialization Setup</span>
+        <button 
           onClick={() => setIsEditing(!isEditing)}
           className="text-zinc-500 hover:text-zinc-300"
         >
@@ -38,41 +36,41 @@ export default function GrowSetupCard({ initialData, onApprove }: GrowSetupCardP
 
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <Field
-            label="Strain"
-            value={data.strain || ''}
-            isEditing={isEditing}
-            onChange={(v) => handleChange('strain', v)}
+          <Field 
+            label="Strain" 
+            value={data.strain || ''} 
+            isEditing={isEditing} 
+            onChange={(v) => handleChange('strain', v)} 
           />
-          <Field
-            label="Plant Quantity"
-            value={data.quantity || 0}
+          <Field 
+            label="Plant Quantity" 
+            value={data.quantity || 0} 
             type="number"
-            isEditing={isEditing}
-            onChange={(v) => handleChange('quantity', Number(v))}
+            isEditing={isEditing} 
+            onChange={(v) => handleChange('quantity', Number(v))} 
           />
-          <Field
-            label="Grow Medium"
-            value={data.medium || ''}
-            isEditing={isEditing}
-            onChange={(v) => handleChange('medium', v)}
+          <Field 
+            label="Grow Medium" 
+            value={data.medium || ''} 
+            isEditing={isEditing} 
+            onChange={(v) => handleChange('medium', v)} 
           />
-          <Field
-            label="Tent Size"
-            value={data.tent_size || ''}
-            isEditing={isEditing}
-            onChange={(v) => handleChange('tent_size', v)}
+          <Field 
+            label="Tent Size" 
+            value={data.tent_size || ''} 
+            isEditing={isEditing} 
+            onChange={(v) => handleChange('tent_size', v)} 
           />
-          <Field
-            label="Nutrient Line"
-            value={data.nutrient_line || ''}
-            isEditing={isEditing}
-            onChange={(v) => handleChange('nutrient_line', v)}
+          <Field 
+            label="Nutrient Line" 
+            value={data.nutrient_line || ''} 
+            isEditing={isEditing} 
+            onChange={(v) => handleChange('nutrient_line', v)} 
           />
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          <button 
             onClick={() => onApprove(data)}
             className="px-4 py-2 text-xs bg-zinc-100 text-zinc-900 font-bold uppercase tracking-wider rounded-none hover:bg-white transition-colors flex items-center gap-2"
           >
@@ -85,16 +83,16 @@ export default function GrowSetupCard({ initialData, onApprove }: GrowSetupCardP
   );
 }
 
-function Field({
-  label,
-  value,
-  isEditing,
+function Field({ 
+  label, 
+  value, 
+  isEditing, 
   onChange,
-  type = 'text',
-}: {
-  label: string;
-  value: string | number;
-  isEditing: boolean;
+  type = "text"
+}: { 
+  label: string; 
+  value: string | number; 
+  isEditing: boolean; 
   onChange: (v: string) => void;
   type?: string;
 }) {
@@ -104,14 +102,16 @@ function Field({
         {label}
       </label>
       {isEditing ? (
-        <input
+        <input 
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="bg-transparent border border-zinc-700 rounded-none px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-zinc-500 transition-colors focus:ring-0"
         />
       ) : (
-        <span className="text-zinc-200 py-1.5 flex items-center h-8">{value || '—'}</span>
+        <span className="text-zinc-200 py-1.5 flex items-center h-8">
+          {value || '—'}
+        </span>
       )}
     </div>
   );

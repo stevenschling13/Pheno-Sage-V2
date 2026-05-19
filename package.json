@@ -8,25 +8,9 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx --cache",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\"",
+    "lint": "tsc --noEmit",
     "start": "node dist/server.cjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-test \"vitest run --config vitest.rules.config.ts\"",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,css}": [
-      "prettier --write"
-    ]
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-test \"vitest run tests/\""
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -34,9 +18,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
-    "express-rate-limit": "^7.4.1",
     "firebase": "^12.13.0",
-    "firebase-admin": "^13.0.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
@@ -48,25 +30,11 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.1.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.0",
-    "@typescript-eslint/parser": "^8.18.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.1.0",
     "firebase-tools": "^15.18.0",
-    "husky": "^9.1.7",
-    "jsdom": "^25.0.1",
-    "lint-staged": "^15.2.11",
-    "prettier": "^3.4.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

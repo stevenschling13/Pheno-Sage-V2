@@ -11,15 +11,11 @@ export default function CopilotPage() {
           <Cpu className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-sm font-bold uppercase tracking-widest text-zinc-100">
-            Predictive Ledger
-          </h1>
-          <p className="text-xs text-zinc-500 font-mono tracking-wider mt-1">
-            Cross-referencing longitudinal vectors
-          </p>
+          <h1 className="text-sm font-bold uppercase tracking-widest text-zinc-100">Predictive Ledger</h1>
+          <p className="text-xs text-zinc-500 font-mono tracking-wider mt-1">Cross-referencing longitudinal vectors</p>
         </div>
       </div>
-
+      
       <div className="flex-1 bg-brand-bg relative overflow-hidden">
         <CopilotTerminal />
       </div>

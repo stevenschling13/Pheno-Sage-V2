@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
   --color-brand-bg: #09090b; /* zinc-950 */
   --color-brand-surface: #18181b; /* zinc-900 */
   --color-brand-surface-hover: #27272a; /* zinc-800 */
   --color-brand-border: #27272a; /* zinc-800 */
-
+  
   /* Semantic Tokens */
   --color-status-optimal: #10b981; /* emerald-500 */
   --color-status-warning: #f59e0b; /* amber-500 */
@@ -20,7 +20,7 @@
   body {
     @apply font-sans antialiased bg-brand-bg text-zinc-300;
   }
-
+  
   /* Make sure scrollbars are dark */
   ::-webkit-scrollbar {
     width: 6px;
@@ -38,11 +38,11 @@
   .terminal-glass {
     @apply bg-brand-surface/80 backdrop-blur-md border border-brand-border;
   }
-
+  
   .data-label {
     @apply text-[10px] uppercase font-bold tracking-widest text-zinc-500;
   }
-
+  
   .data-value {
     @apply font-mono text-zinc-100;
   }

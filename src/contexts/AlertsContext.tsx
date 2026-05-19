@@ -1,16 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
-  updateDoc,
-  doc,
-  onSnapshot,
-} from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface AlertFinding {
@@ -53,20 +43,16 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
       where('userId', '==', user.uid),
       where('status', '==', 'active'),
       orderBy('createdAt', 'desc'),
-      limit(20),
+      limit(20)
     );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        setFindings(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as AlertFinding));
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error listening to findings', error);
-        setLoading(false);
-      },
-    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setFindings(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AlertFinding)));
+      setLoading(false);
+    }, (error) => {
+      console.error('Error listening to findings', error);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, [user]);
@@ -76,7 +62,7 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     try {
       await updateDoc(doc(db, 'plant_findings', id), { status: 'resolved' });
       // Optimistic update
-      setFindings((prev) => prev.filter((f) => f.id !== id));
+      setFindings(prev => prev.filter(f => f.id !== id));
     } catch (e) {
       console.error('Failed to resolve finding', e);
     }
