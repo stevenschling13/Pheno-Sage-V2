@@ -8,8 +8,11 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import GrowsPage from './pages/GrowsPage';
 import GrowDetailPage from './pages/GrowDetailPage';
+import AlertsPage from './pages/AlertsPage';
+import PlantDetailPage from './pages/PlantDetailPage';
 import ProtectedLayout from './components/layout/ProtectedLayout';
 import { AuthProvider } from './contexts/AuthContext';
+import { AlertsProvider } from './contexts/AlertsContext';
 
 /**
  * App Component
@@ -20,22 +23,26 @@ import { AuthProvider } from './contexts/AuthContext';
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+      <AlertsProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Protected Application Routes */}
-          <Route element={<ProtectedLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/grows" element={<GrowsPage />} />
-            <Route path="/grows/:growId" element={<GrowDetailPage />} />
-          </Route>
+            {/* Protected Application Routes */}
+            <Route element={<ProtectedLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/grows" element={<GrowsPage />} />
+              <Route path="/grows/:growId" element={<GrowDetailPage />} />
+              <Route path="/grows/:growId/plants/:plantId" element={<PlantDetailPage />} />
+              <Route path="/alerts" element={<AlertsPage />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AlertsProvider>
     </AuthProvider>
   );
 }

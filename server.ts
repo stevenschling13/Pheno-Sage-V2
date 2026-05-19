@@ -44,7 +44,9 @@ app.post("/api/analyze-plant", async (req, res) => {
     const textPart = {
       text: `You are a professional cannabis cultivation AI operating system. 
 Analyze the provided plant media and provide a structured JSON response.
-Do not fabricate a confident diagnosis from poor media. Provide a fallback if necessary.`,
+Do not fabricate a confident diagnosis from poor media. 
+If the media quality is inadequate for analysis (e.g., blurry, out of focus, poor lighting/too dark, camera too far away, or plant is obstructed), set 'isFallback' to true.
+Provide a specific, detailed, and user-friendly 'fallbackReason' describing exactly why the media cannot be analyzed and MUST include a clear suggestion on how to improve the media for re-analysis (e.g. "The image is too blurry to identify leaf details. Please try taking another photo in a brighter area with the camera held steady and closer to the affected leaves.", "The lighting is too dim to accurately assess color. Please turn on grow lights or use the flash and take another photo.").`,
     };
 
     const responseSchema = {
@@ -93,7 +95,7 @@ Do not fabricate a confident diagnosis from poor media. Provide a fallback if ne
     };
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-2.5-flash",
       contents: { parts: [imagePart, textPart] },
       config: {
         responseMimeType: "application/json",
@@ -105,7 +107,111 @@ Do not fabricate a confident diagnosis from poor media. Provide a fallback if ne
     res.json(JSON.parse(text));
   } catch (error: any) {
     console.error("Analysis Error:", error);
-    res.status(500).json({ error: error.message || "Failed to analyze plant" });
+    let errorMessage = error.message || "Failed to analyze plant";
+    let statusCode = 500;
+
+    if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+      errorMessage = "RATE LIMIT EXCEEDED. The analysis engine quota has been reached. Please wait and try again shortly.";
+      statusCode = 429;
+    }
+
+    res.status(statusCode).json({ error: errorMessage });
+  }
+});
+
+app.post("/api/copilot", async (req, res) => {
+  try {
+    const { input, history } = req.body;
+    
+    // We expect input string and history array
+    if (!input) {
+      return res.status(400).json({ error: "Missing input" });
+    }
+    
+    // Aggregate high-frequency data points into chronological 4-hour interval structures
+    let aggregatedHistory = history;
+    if (Array.isArray(history) && history.length > 0) {
+       const buckets = new Map();
+       for (const entry of history) {
+           // Fallback to grouping by date if timestamp is missing from mock data
+           const time = entry.timestamp ? new Date(entry.timestamp).getTime() : 0;
+           const bucketKey = time > 0 
+               ? Math.floor(time / (4 * 60 * 60 * 1000)) * (4 * 60 * 60 * 1000) 
+               : entry.date; 
+           
+           if (!buckets.has(bucketKey)) {
+               buckets.set(bucketKey, { count: 0, vpd: 0, temp: 0, ec: 0, notes: [] });
+           }
+           const bucket = buckets.get(bucketKey);
+           bucket.count += 1;
+           if (entry.vpd) bucket.vpd += entry.vpd;
+           // Also support temperature variants (temp or temperature)
+           const temp = entry.temp || entry.temperature;
+           if (temp) bucket.temp += temp;
+           if (entry.ec) bucket.ec += entry.ec;
+           if (entry.notes) bucket.notes.push(entry.notes);
+       }
+       
+       aggregatedHistory = Array.from(buckets.entries()).map(([key, bucket]) => ({
+           time: typeof key === 'number' ? new Date(key).toISOString() : key,
+           avg_vpd: bucket.count && bucket.vpd ? Number((bucket.vpd / bucket.count).toFixed(2)) : undefined,
+           avg_temp: bucket.count && bucket.temp ? Number((bucket.temp / bucket.count).toFixed(2)) : undefined,
+           avg_ec: bucket.count && bucket.ec ? Number((bucket.ec / bucket.count).toFixed(2)) : undefined,
+           events: bucket.notes.length > 0 ? bucket.notes.join('; ') : undefined
+       }));
+    }
+    
+    const textPart = {
+      text: `You are a 'Predictive Analysis Ledger' in a cannabis cultivation OS (PhenoSage).
+The user is providing an input or manual override (e.g., "increase humidity to 70%", or "feeding nutrient X at 5ml/gal").
+You are provided with the following longitudinal history data for the current batch (aggregated in 4-hour blocks):
+${JSON.stringify(aggregatedHistory, null, 2)}
+
+Your directive:
+Analyze the user's intent against the historical data. 
+If the user's input contradicts the historical trend, could cause an issue based on the trends, or violates standard optimize protocols given the history (e.g. they want to raise humdity but history shows signs of PM or already high humidity), you MUST issue a "CRITICAL CORRECTION".
+If the input is safe and aligns with the data, issue a "LEDGER_ENTRY" confirming the predictive outcome.
+
+Output your response as JSON:`,
+    };
+
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        type: { type: Type.STRING, description: "'CRITICAL_CORRECTION' or 'LEDGER_ENTRY' or 'PREDICTIVE_INSIGHT'" },
+        title: { type: Type.STRING },
+        message: { type: Type.STRING, description: "Detailed analysis of the delta and predictive outcome." },
+        metrics_impact: { 
+          type: Type.ARRAY, 
+          description: "Which metrics will be impacted and how (e.g. ['VPD: +5%', 'Temp: -2C'])",
+          items: { type: Type.STRING } 
+        }
+      },
+      required: ["type", "title", "message", "metrics_impact"]
+    };
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: { parts: [textPart] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      }
+    });
+
+    const text = response.text;
+    res.json(JSON.parse(text));
+  } catch (error: any) {
+    console.error("Copilot Error:", error);
+    let errorMessage = error.message || "Failed to process copilot query";
+    let statusCode = 500;
+
+    if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+      errorMessage = "RATE LIMIT EXCEEDED. The analysis engine quota has been reached. Please wait and try again shortly.";
+      statusCode = 429;
+    }
+
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 

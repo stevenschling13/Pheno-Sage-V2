@@ -180,146 +180,158 @@ export default function GrowDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mb-4" />
-        <p className="text-slate-500 text-sm">Accessing cultivation documents...</p>
+        <Loader2 className="w-6 h-6 text-status-optimal animate-spin mb-4" />
+        <p className="data-label text-zinc-500">SYNC_DOCUMENT</p>
       </div>
     );
   }
 
   if (error || !grow) {
     return (
-      <div className="p-8 text-center bg-red-500/10 border border-red-500/20 rounded-3xl max-w-lg mx-auto">
-        <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-        <p className="text-red-400 font-bold mb-4">{error || 'Access Denied'}</p>
-        <Link to="/grows" className="text-white hover:text-emerald-400 font-bold text-xs uppercase tracking-widest">
-           Back to Records
+      <div className="p-8 text-center bg-status-error/10 border border-status-error max-w-lg mx-auto flex flex-col items-center">
+        <AlertTriangle className="w-8 h-8 text-status-error mx-auto mb-4" />
+        <p className="text-status-error font-mono text-sm uppercase mb-4">{error || 'Access Denied'}</p>
+        <Link to="/grows" className="data-label hover:text-status-optimal">
+           [ Back to Records ]
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <nav className="flex items-center justify-between">
+    <div className="space-y-6">
+      <nav className="flex items-center justify-between border-b border-brand-border pb-4">
         <Link 
           to="/grows" 
-          className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest"
+          className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors data-label"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to List
+          <ArrowLeft className="w-3 h-3" /> Back
         </Link>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button 
             onClick={openEditGrow}
-            className="p-2.5 rounded-xl border border-brand-border bg-brand-surface text-slate-500 hover:text-emerald-400 hover:border-emerald-400/30 transition-all"
-            title="Edit Grow"
+            className="p-1.5 border border-brand-border bg-brand-surface text-zinc-500 hover:text-status-optimal hover:border-status-optimal/30 transition-all"
+            title="Edit Grow Instance"
           >
-            <Pencil className="w-5 h-5" />
+            <Pencil className="w-4 h-4" />
           </button>
           <button 
             onClick={() => setGrowToArchive(true)}
-            className="p-2.5 rounded-xl border border-brand-border bg-brand-surface text-slate-500 hover:text-red-400 hover:border-red-400/30 transition-all"
-            title="Archive Grow"
+            className="p-1.5 border border-brand-border bg-brand-surface text-zinc-500 hover:text-status-error hover:border-status-error/30 transition-all"
+            title="Archive Grow Instance"
           >
-            <Archive className="w-5 h-5" />
+            <Archive className="w-4 h-4" />
           </button>
         </div>
       </nav>
 
-      <header className="rounded-3xl border border-brand-border bg-brand-surface p-8 shadow-xl">
-        <div className="flex flex-wrap justify-between items-start gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+      <header className="border border-brand-border bg-brand-surface flex flex-col md:flex-row shadow-sm">
+        <div className="p-6 md:p-8 flex-1 flex flex-col justify-between border-b md:border-b-0 md:border-r border-brand-border bg-brand-bg">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="bg-status-warning/10 border border-status-warning/20 px-2.5 py-1 text-[10px] font-mono text-status-warning uppercase tracking-widest">
                 {grow.stage}
               </span>
-              <span className="text-slate-700 text-xs font-mono uppercase">ID: {grow.id.slice(0, 8)}</span>
+              <span className="text-zinc-600 text-[10px] font-mono uppercase tracking-widest">ID: {grow.id.slice(0, 8)}</span>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tight uppercase">{grow.name}</h1>
-            <div className="flex gap-6 mt-4">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest">
-                <Target className="w-4 h-4 text-emerald-500 opacity-60" /> {grow.medium}
+            
+            <h1 className="text-3xl font-mono text-zinc-100 tracking-tight uppercase mb-6 truncate">{grow.name}</h1>
+            
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-auto">
+              <div className="flex items-center gap-2 data-label text-zinc-400 font-mono normal-case">
+                <Target className="w-3 h-3 text-zinc-600" /> MediaType: <span className="text-zinc-300">{grow.medium}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest">
-                <Calendar className="w-4 h-4 text-emerald-500 opacity-60" /> Started {new Date((grow.startDate as any)?.seconds * 1000).toLocaleDateString()}
+              <div className="flex items-center gap-2 data-label font-mono normal-case text-zinc-500">
+                <Calendar className="w-3 h-3 text-zinc-600" /> Start: <span className="data-value text-xs">{new Date((grow.startDate as any)?.seconds * 1000).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' })}</span>
               </div>
             </div>
+        </div>
+        
+        <div className="flex md:flex-col">
+          <div className="flex-1 bg-brand-surface/50 p-6 border-r md:border-r-0 md:border-b border-brand-border flex flex-col justify-center items-center text-center">
+            <div className="data-label mb-2">Plant Count</div>
+            <div className="text-2xl data-value text-status-optimal">{plants.length.toString().padStart(2, '0')}</div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-3 min-w-[200px]">
-            <div className="bg-brand-bg rounded-2xl border border-brand-border p-4 text-center">
-              <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1">Plants</div>
-              <div className="text-2xl font-black text-white">{plants.length}</div>
-            </div>
-            <div className="bg-brand-bg rounded-2xl border border-brand-border p-4 text-center">
-              <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1">Days</div>
-              <div className="text-2xl font-black text-white">
-                {Math.floor((Date.now() / 1000 - (grow.startDate as any)?.seconds) / 86400)}
-              </div>
+          <div className="flex-1 bg-brand-surface/50 p-6 flex flex-col justify-center items-center text-center">
+            <div className="data-label mb-2">SYS Uptime (Days)</div>
+            <div className="text-2xl data-value">
+              {Math.floor((Date.now() / 1000 - (grow.startDate as any)?.seconds) / 86400).toString().padStart(3, '0')}
             </div>
           </div>
         </div>
       </header>
 
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white tracking-tight">Individual Plant Assets</h2>
+        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+          <h2 className="data-label text-zinc-300">Registered Plant Assets</h2>
           <button 
             onClick={() => setIsAddPlantModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-brand-surface border border-brand-border px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:border-emerald-500/50 transition-all"
+            className="flex items-center gap-2 text-[10px] uppercase font-mono font-bold text-status-optimal hover:text-emerald-400 transition-colors"
           >
-            <Plus className="w-4 h-4" /> ADD PLANT
+            <Plus className="w-3 h-3" /> [ Add Plant ]
           </button>
         </div>
 
         {plants.length === 0 ? (
-          <div className="rounded-3xl border-2 border-dashed border-brand-border p-12 text-center bg-brand-surface/20">
-            <Sprout className="w-8 h-8 text-slate-700 mx-auto mb-4" />
-            <p className="text-slate-500 text-sm">No plants added to this grow unit yet.</p>
+          <div className="border border-dashed border-zinc-800 p-12 text-center bg-brand-bg">
+            <Sprout className="w-8 h-8 text-zinc-700 mx-auto mb-4" />
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">Null array. No plants discovered.</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
             {plants.map((plant) => (
               <motion.div 
                 key={plant.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="group relative rounded-3xl border border-brand-border bg-brand-bg p-6 lg:p-8 hover:border-slate-700 transition-colors"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="group relative border border-brand-border bg-brand-bg"
               >
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-4">
-                     <div className="h-12 w-12 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-center">
-                        <Leaf className="w-6 h-6 text-emerald-600" />
-                     </div>
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-brand-border bg-brand-surface/40">
+                  <div className="flex items-center gap-3">
+                     <Leaf className="w-5 h-5 text-status-optimal opacity-80" />
                      <div>
-                        <h4 className="font-black text-2xl text-white tracking-tight uppercase">{plant.name}</h4>
-                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{plant.strain}</p>
+                        <Link to={`/grows/${grow.id}/plants/${plant.id}`} className="text-sm font-mono text-zinc-200 uppercase hover:text-status-optimal transition-colors">
+                          {plant.name}
+                        </Link>
+                        <p className="data-label !text-[9px] mt-0.5">{plant.strain}</p>
                      </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
+                    <Link
+                      to={`/grows/${grow.id}/plants/${plant.id}`}
+                      className="border border-brand-border bg-brand-bg hover:bg-brand-surface text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-200 px-3 py-1.5 transition-colors font-bold mr-2"
+                    >
+                      [ Analytics ]
+                    </Link>
                     <button 
                       onClick={() => openEditPlant(plant)}
-                      className="p-2.5 rounded-xl border border-brand-border bg-brand-surface text-slate-500 hover:text-emerald-400 transition-all"
-                      title="Edit Plant"
+                      className="p-1.5 border border-transparent hover:border-brand-border text-zinc-500 hover:text-status-optimal transition-all"
+                      title="Edit Item"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3 h-3" />
                     </button>
                     <button 
                       onClick={() => setPlantToArchive(plant.id)}
-                      className="p-2.5 rounded-xl border border-brand-border bg-brand-surface text-slate-500 hover:text-red-400 transition-all"
-                      title="Archive Plant"
+                      className="p-1.5 border border-transparent hover:border-brand-border text-zinc-500 hover:text-status-error transition-all"
+                      title="Archive Item"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  <div className="xl:col-span-1 border-b xl:border-b-0 xl:border-r border-brand-border pb-6 xl:pb-0 xl:pr-6">
-                     <MediaUpload userId={user!.uid} growId={grow.id} plantId={plant.id} />
+                <div className="grid grid-cols-1 xl:grid-cols-4 min-h-[300px]">
+                  <div className="xl:col-span-1 border-b xl:border-b-0 xl:border-r border-brand-border p-4 bg-brand-surface/10 flex items-start justify-center">
+                     <div className="w-full">
+                       <MediaUpload userId={user!.uid} growId={grow.id} plantId={plant.id} />
+                     </div>
                   </div>
-                  <div className="xl:col-span-2">
-                     <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Media Library</h5>
-                     <MediaGallery userId={user!.uid} plantId={plant.id} />
+                  <div className="xl:col-span-3 p-4 flex flex-col bg-brand-bg">
+                     <div className="flex items-center justify-between mb-3 border-b border-zinc-900 pb-2">
+                        <h5 className="data-label">Media Library Cache</h5>
+                     </div>
+                     <div className="flex-1">
+                        <MediaGallery userId={user!.uid} plantId={plant.id} />
+                     </div>
                   </div>
                 </div>
               </motion.div>
@@ -331,23 +343,26 @@ export default function GrowDetailPage() {
       {/* Add / Edit Plant Modal */}
       <AnimatePresence>
         {(isAddPlantModalOpen || plantToEdit) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-brand-bg/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-bg/90 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              className="w-full max-w-md rounded-3xl border border-brand-border bg-brand-surface p-8 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="w-full max-w-md border border-brand-border bg-brand-surface shadow-2xl font-mono overflow-hidden"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">{plantToEdit ? 'Edit Plant' : 'Add Plant Asset'}</h2>
+              <div className="border-b border-brand-border p-4 bg-brand-bg flex items-center gap-2">
+                <Leaf className="w-4 h-4 text-status-optimal" />
+                <h2 className="text-xs uppercase tracking-widest text-zinc-300 font-bold">{plantToEdit ? 'Configure Asset' : 'Construct Plant Asset'}</h2>
+              </div>
               
-              <form onSubmit={plantToEdit ? handleEditPlant : handleCreatePlant} className="space-y-5">
+              <form onSubmit={plantToEdit ? handleEditPlant : handleCreatePlant} className="p-6 space-y-5 bg-brand-bg">
                 {plantError && (
-                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+                  <div className="p-3 bg-status-error/10 border border-status-error text-status-error text-[10px] uppercase tracking-wider">
                     {plantError}
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Plant Label/Tag</label>
+                  <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Asset Label/Tag</label>
                   <input 
                     required
                     type="text"
@@ -356,12 +371,12 @@ export default function GrowDetailPage() {
                       ? setEditPlantFormData({...editPlantFormData, name: e.target.value})
                       : setPlantFormData({...plantFormData, name: e.target.value})}
                     placeholder="e.g. KM-01"
-                    className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors"
+                    className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all placeholder:text-zinc-700"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Strain / Cultivar</label>
+                  <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Cultivar Specification</label>
                   <input 
                     required
                     type="text"
@@ -370,24 +385,24 @@ export default function GrowDetailPage() {
                       ? setEditPlantFormData({...editPlantFormData, strain: e.target.value})
                       : setPlantFormData({...plantFormData, strain: e.target.value})}
                     placeholder="e.g. Kush Mints"
-                    className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors"
+                    className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all placeholder:text-zinc-700"
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-3 pt-4 border-t border-brand-border mt-6">
                   <button 
                     type="button"
                     onClick={() => { setIsAddPlantModalOpen(false); setPlantToEdit(null); setPlantError(null); }}
-                    className="flex-1 rounded-xl border border-brand-border px-6 py-3 text-sm font-bold text-slate-500 hover:text-white transition-colors"
+                    className="flex-1 border border-brand-border bg-brand-surface px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
                   >
-                    CANCEL
+                    Abort
                   </button>
                   <button 
                     type="submit"
                     disabled={submittingPlant}
-                    className="flex-1 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-900/20"
+                    className="flex-1 bg-status-optimal px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-brand-bg hover:bg-emerald-400 disabled:opacity-50 transition-colors"
                   >
-                    {submittingPlant ? 'SAVING...' : 'SAVE PLANT'}
+                    {submittingPlant ? 'PROCESSING...' : 'COMMIT WRITE'}
                   </button>
                 </div>
               </form>
@@ -399,39 +414,42 @@ export default function GrowDetailPage() {
       {/* Edit Grow Modal */}
       <AnimatePresence>
         {isEditGrowModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-brand-bg/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-bg/90 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              className="w-full max-w-lg rounded-3xl border border-brand-border bg-brand-surface p-8 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="w-full max-w-lg border border-brand-border bg-brand-surface font-mono overflow-hidden shadow-2xl"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">Edit Grow Container</h2>
+              <div className="border-b border-brand-border p-4 bg-brand-bg flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-status-warning" />
+                <h2 className="text-xs uppercase tracking-widest text-zinc-300 font-bold">Configure Grow Instance</h2>
+              </div>
               
-              <form onSubmit={handleEditGrow} className="space-y-5">
+              <form onSubmit={handleEditGrow} className="p-6 space-y-5 bg-brand-bg">
                 {growEditError && (
-                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+                  <div className="p-3 bg-status-error/10 border border-status-error text-status-error text-[10px] uppercase tracking-wider">
                     {growEditError}
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Grow Unit Name</label>
+                  <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Grow Ident_String</label>
                   <input 
                     required
                     type="text"
                     value={editGrowFormData.name}
                     onChange={(e) => setEditGrowFormData({...editGrowFormData, name: e.target.value})}
-                    className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors"
+                    className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all placeholder:text-zinc-700"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Current Stage</label>
+                     <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">INIT Stage</label>
                     <select 
                       value={editGrowFormData.stage}
                       onChange={(e) => setEditGrowFormData({...editGrowFormData, stage: e.target.value as GrowStage})}
-                      className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors appearance-none"
+                      className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all appearance-none cursor-pointer"
                     >
                       <option value="Germination">Germination</option>
                       <option value="Seedling">Seedling</option>
@@ -440,42 +458,42 @@ export default function GrowDetailPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Medium</label>
+                    <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Bio_Medium</label>
                     <input 
                       required
                       type="text"
                       value={editGrowFormData.medium}
                       onChange={(e) => setEditGrowFormData({...editGrowFormData, medium: e.target.value})}
-                      className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors"
+                      className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all placeholder:text-zinc-700"
                     />
                   </div>
                 </div>
 
                 <div>
-                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Start Date</label>
+                   <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">SYS_Boot_Date</label>
                    <input 
                     required
                     type="date"
                     value={editGrowFormData.startDate}
                     onChange={(e) => setEditGrowFormData({...editGrowFormData, startDate: e.target.value})}
-                    className="w-full rounded-xl border border-brand-border bg-brand-bg px-4 py-3 text-sm text-slate-200 focus:border-emerald-500 outline-none transition-colors"
+                    className="w-full border border-brand-border bg-brand-surface px-3 py-2 text-sm text-zinc-200 focus:border-status-optimal focus:ring-1 focus:ring-status-optimal outline-none transition-all"
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-3 pt-4 border-t border-brand-border mt-6">
                   <button 
                     type="button"
                     onClick={() => { setIsEditGrowModalOpen(false); setGrowEditError(null); }}
-                    className="flex-1 rounded-xl border border-brand-border px-6 py-3 text-sm font-bold text-slate-500 hover:text-white transition-colors"
+                    className="flex-1 border border-brand-border bg-brand-surface px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
                   >
-                    CANCEL
+                    Abort
                   </button>
                   <button 
                     type="submit"
                     disabled={submittingGrowEdit}
-                    className="flex-1 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-900/20"
+                    className="flex-1 bg-status-warning px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-black hover:bg-yellow-400 disabled:opacity-50 transition-colors"
                   >
-                    {submittingGrowEdit ? 'SAVING...' : 'SAVE CHANGES'}
+                    {submittingGrowEdit ? 'PROCESSING...' : 'APPLY MUTATION'}
                   </button>
                 </div>
               </form>
@@ -487,34 +505,34 @@ export default function GrowDetailPage() {
       {/* Archive Modal (Grow or Plant) */}
       <AnimatePresence>
         {(growToArchive || plantToArchive) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-brand-bg/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm rounded-3xl border border-brand-border bg-brand-surface p-8 shadow-2xl text-center"
+              className="w-full max-w-sm border border-status-error bg-brand-bg p-6 text-center shadow-[0_0_40px_rgba(239,68,68,0.15)] font-mono"
             >
-              <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white mb-2">
-                Archive {growToArchive ? 'Grow' : 'Plant'}
+              <AlertTriangle className="w-10 h-10 text-status-error mx-auto mb-4" />
+              <h2 className="text-sm font-bold text-status-error uppercase mb-2 tracking-widest">
+                Destructive Action
               </h2>
-              <p className="text-slate-400 text-sm mb-8">
-                Are you sure you want to archive {growToArchive ? 'this entire grow' : 'this plant'}? It will be removed from your active records.
+              <p className="text-zinc-400 text-xs mb-8 leading-relaxed">
+                Confirm archiving of {growToArchive ? 'Grow Instance' : 'Plant Asset'}. Data will be unlinked from active views.
               </p>
               
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button 
                   onClick={() => { setGrowToArchive(false); setPlantToArchive(null); }}
-                  className="flex-1 rounded-xl border border-brand-border px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-white transition-colors"
+                  className="flex-1 border border-brand-border px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-colors"
                 >
-                  CANCEL
+                  Terminate
                 </button>
                 <button 
                   onClick={growToArchive ? handleArchiveGrow : handleArchivePlant}
                   disabled={submittingGrowEdit || submittingPlant}
-                  className="flex-1 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2.5 text-sm font-bold hover:bg-red-500 hover:text-white disabled:opacity-50 transition-colors"
+                  className="flex-1 bg-status-error text-brand-bg px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-red-400 transition-colors disabled:opacity-50"
                 >
-                  {(submittingGrowEdit || submittingPlant) ? 'ARCHIVING...' : 'ARCHIVE'}
+                  {(submittingGrowEdit || submittingPlant) ? 'WAIT...' : 'EXECUTE'}
                 </button>
               </div>
             </motion.div>

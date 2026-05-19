@@ -111,6 +111,28 @@ export const getAllPlants = async (ownerId: string) => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plant));
 };
 
+export const getPlantById = async (plantId: string) => {
+  if (!db) throw new Error('Firestore not initialized');
+  const docRef = doc(db, 'plants', plantId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as Plant;
+  }
+  return null;
+};
+
+export const getPlantMedia = async (plantId: string) => {
+  if (!db) throw new Error('Firestore not initialized');
+  const q = query(
+    collection(db, 'media_assets'),
+    where('plantId', '==', plantId),
+    where('uploadStatus', '==', 'uploaded'),
+    orderBy('createdAt', 'desc')
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+};
+
 export const updatePlant = async (plantId: string, data: Partial<Plant>) => {
   if (!db) throw new Error('Firestore not initialized');
   const docRef = doc(db, 'plants', plantId);

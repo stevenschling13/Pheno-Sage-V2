@@ -40,65 +40,65 @@ const MediaItem: React.FC<{ asset: MediaAsset; onArchive: (id: string) => void }
   }, [asset]);
 
   const sizeMb = (asset.sizeBytes / (1024 * 1024)).toFixed(1);
-  const date = asset.createdAt?.toDate ? asset.createdAt.toDate().toLocaleDateString() : 'Just now';
+  const date = asset.createdAt?.toDate ? asset.createdAt.toDate().toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' }) : 'T:0';
 
   return (
-    <div className="relative group overflow-hidden rounded-lg border border-brand-border bg-brand-surface group">
+    <div className="relative group border border-brand-border bg-brand-surface font-mono overflow-hidden">
       {asset.uploadStatus === 'failed' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/20 text-red-400 font-semibold p-2 text-center">
-          <AlertCircle className="w-5 h-5 mb-1" />
-          <span className="text-xs">Upload Failed</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-status-error/10 border border-status-error text-status-error font-bold p-2 text-center uppercase tracking-widest text-[9px] backdrop-blur-sm z-10">
+          <AlertCircle className="w-4 h-4 mb-1" />
+          <span>Upload Failed</span>
         </div>
       )}
       
       {asset.uploadStatus === 'uploading' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/50">
-          <Loader2 className="w-6 h-6 text-brand-green animate-spin mb-2" />
-          <span className="text-xs text-brand-muted">Uploading...</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-brand-bg/80 border border-status-optimal backdrop-blur-sm z-10">
+          <Loader2 className="w-5 h-5 text-status-optimal animate-spin mb-2" />
+          <span className="text-[9px] text-zinc-400 uppercase tracking-widest">Uplink Active</span>
         </div>
       )}
 
       {asset.uploadStatus === 'uploaded' && asset.mediaType === 'image' && (
-        <div className="aspect-square bg-slate-900 relative">
+        <div className="aspect-square bg-zinc-900 relative">
           {loading ? (
              <div className="absolute inset-0 flex items-center justify-center">
-               <Loader2 className="w-5 h-5 text-brand-muted animate-spin" />
+               <Loader2 className="w-4 h-4 text-zinc-600 animate-spin" />
              </div>
           ) : url ? (
-            <img src={url} alt={asset.fileName} className="w-full h-full object-cover" />
+            <img src={url} alt={asset.fileName} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 opacity-80 group-hover:opacity-100 transition-all duration-300" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-              <ImageIcon className="w-8 h-8" />
+            <div className="absolute inset-0 flex items-center justify-center text-zinc-700">
+              <ImageIcon className="w-6 h-6" />
             </div>
           )}
         </div>
       )}
 
       {asset.uploadStatus === 'uploaded' && asset.mediaType === 'video' && (
-        <div className="aspect-square bg-slate-900 flex flex-col items-center justify-center text-slate-400 p-4 text-center relative">
-          <Play className="w-10 h-10 mb-2 opacity-50" />
-          <span className="text-xs truncate w-full px-2" title={asset.fileName}>{asset.fileName}</span>
+        <div className="aspect-square bg-zinc-900 flex flex-col items-center justify-center text-zinc-600 p-4 text-center relative border border-dashed border-zinc-800 m-1">
+          <Play className="w-6 h-6 mb-2 opacity-50" />
+          <span className="text-[9px] truncate w-full px-2 lowercase">{asset.fileName}</span>
         </div>
       )}
       
       {/* Overlay with info and actions */}
-      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/90 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-x-0 bottom-0 p-2 bg-brand-bg/80 backdrop-blur-sm flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">
          <div>
-           <p className="text-[10px] text-brand-muted uppercase font-bold tracking-wider">{asset.mediaType}</p>
-           <p className="text-xs text-white">{date} • {sizeMb}MB</p>
+           <p className="text-[9px] text-status-optimal uppercase tracking-widest">{asset.mediaType}</p>
+           <p className="text-[10px] text-zinc-300 data-value mt-0.5">{date} | {sizeMb}M</p>
          </div>
          <button 
            onClick={() => onArchive(asset.id)}
-           className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center hover:bg-red-500/80 hover:text-white text-slate-300 transition-colors"
+           className="w-5 h-5 bg-brand-surface border border-brand-border flex items-center justify-center hover:bg-status-error hover:text-brand-bg hover:border-status-error text-zinc-400 transition-colors"
            title="Archive Media"
          >
-           <Trash2 className="w-3.5 h-3.5" />
+           <Trash2 className="w-3 h-3" />
          </button>
       </div>
       
       {/* Type badge on top left */}
-      <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] bg-black/60 text-white backdrop-blur flex items-center gap-1">
-        {asset.mediaType === 'video' ? <VideoIcon className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
+      <div className="absolute top-1 left-1 px-1 py-0.5 text-[9px] bg-brand-bg/80 text-zinc-300 border border-brand-border flex items-center gap-1 uppercase tracking-widest">
+        {asset.mediaType === 'video' ? <VideoIcon className="w-2.5 h-2.5" /> : <ImageIcon className="w-2.5 h-2.5" />}
       </div>
     </div>
   );
@@ -124,14 +124,14 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({ userId, plantId }) =
       await archiveMediaAsset(id);
     } catch(err: any) {
       console.error("Failed to archive:", err);
-      setError(err.message || "Failed to archive media.");
+      setError(err.message || "Archive instruction failed.");
     }
   };
 
   if (loading) {
     return (
       <div className="py-8 flex justify-center">
-        <Loader2 className="w-6 h-6 text-brand-green animate-spin" />
+        <Loader2 className="w-5 h-5 text-status-optimal animate-spin" />
       </div>
     );
   }
@@ -139,18 +139,18 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({ userId, plantId }) =
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-          {error}
+        <div className="mb-4 p-2 border border-status-error bg-status-error/10 text-status-error text-[10px] uppercase font-mono tracking-widest">
+          ERR: {error}
         </div>
       )}
       {assets.length === 0 ? (
-        <div className="py-8 text-center text-brand-muted bg-brand-surface/30 rounded-xl border border-brand-border border-dashed">
-          <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-20" />
-          <p className="font-medium text-slate-300">No media yet</p>
-          <p className="text-sm">Upload images or videos of this plant.</p>
+        <div className="py-8 text-center bg-brand-bg border border-brand-border border-dashed font-mono">
+          <ImageIcon className="w-6 h-6 mx-auto mb-2 text-zinc-700" />
+          <p className="data-label text-zinc-400">Empty Media Array</p>
+          <p className="text-[10px] text-zinc-600 mt-1">Provide visual input stream.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-4">
           {assets.map(asset => (
             <MediaItem key={asset.id} asset={asset} onArchive={handleArchive} />
           ))}
