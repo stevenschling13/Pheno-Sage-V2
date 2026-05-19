@@ -14,13 +14,15 @@ export const seedDatabase = async (userId: string) => {
         const growRef = doc(collection(db, 'grows'));
         const growData: Grow = {
             id: growRef.id,
+            ownerId: userId,
             name: growNames[i],
-            strain: `HYBRID_STRAIN_0${i+1}`,
+            stage: 'Vegetative',
+            medium: 'Coco Coir',
             startDate: { seconds: Math.floor(Date.now() / 1000) - (86400 * (30 + i * 10)), nanoseconds: 0 } as any,
-            status: 'active',
+            archived: false,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            ownerId: userId
+            lightType: 'LED'
         };
         batch.set(growRef, growData);
         grows.push(growData);
@@ -35,16 +37,13 @@ export const seedDatabase = async (userId: string) => {
             const plantData: Plant = {
                 id: plantRef.id,
                 growId: grow.id,
+                ownerId: userId,
                 name: `ASSET_${plantCount.toString().padStart(3, '0')}`,
-                strain: grow.strain,
-                germinationDate: grow.startDate,
-                status: 'active',
-                healthScore: 85 + Math.floor(Math.random() * 10),
-                flags: [],
-                logs: [],
+                strain: `HYBRID_STRAIN_0${grows.indexOf(grow)+1}`,
+                archived: false,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                ownerId: userId
+                batchLabel: `BATCH-${grow.name}`
             };
             batch.set(plantRef, plantData);
             plants.push(plantData);

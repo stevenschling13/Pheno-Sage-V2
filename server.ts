@@ -119,6 +119,161 @@ Provide a specific, detailed, and user-friendly 'fallbackReason' describing exac
   }
 });
 
+app.post("/api/orchestrator", async (req, res) => {
+  try {
+    const { input, mediaBase64, mimeType } = req.body;
+    
+    if (!input && !mediaBase64) {
+      return res.status(400).json({ error: "Missing input or media" });
+    }
+    
+    const parts: any[] = [];
+    
+    if (mediaBase64 && mimeType) {
+      parts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: mediaBase64,
+        }
+      });
+    }
+    
+    parts.push({
+      text: `You are the Master Orchestrator in a MAS (Multi-Agent System) for a cannabis cultivation OS (PhenoSage).
+The user input must be parsed and routed to one of five simulated sub-agents:
+- Botanist (Diagnostic/Visual/Plant Health/Nutrients/Video Walkthroughs)
+- Scheduler (Tasks/Timelines/Watering Schedules)
+- Environment (Setup/Telemetry/Sensors/Climate/Starting Grows/OCR)
+- Geneticist (Clones/Pheno-hunting/Harvests/Lineage)
+- Compiler (Ledger Export/Journal Generation/Reports)
+
+Based on the intent, you must return a "component trigger" to render a specific React component via a Generative UI pattern.
+
+If the user wants to start a new grow, provision space, or configure physical constraints (Environment agent), return a GROW_SETUP component trigger, extracting entities like strain, medium, tent_size, quantity.
+If the user asks for a briefing, status, morning summary, plant health diagnostic, climate data update, or general daily update (Botanist or Environment agent), return a MORNING_BRIEFING component trigger.
+If the user provides an image containing a physical sensor reading (like a digital thermometer/hygrometer that shows Temp/Humidity), the Environment Agent must perform OCR. 
+Return an 'OCR_CAPTURE' component trigger, extracting the 'temperature' and 'humidity' from the image, and setting 'status' to 'pending_approval'.
+If the user provides a video walkthrough of their grow tent (even as a still image mimicking a video), the Botanist Agent must simulate keyframe extraction. Return a 'WALKTHROUGH_REPORT' component trigger. In the report, you must identify specific plants, note visual anomalies (e.g., "Plant 1: Leaf curling detected", "Plant 2: Optimal"), and provide an overall health summary.
+If the user mentions taking clones, tracking lineage, or noting specific phenotypic traits for propagation (Geneticist Agent), return a 'PHENOTYPE_LINEAGE' component trigger. Extract the mother plant traits, the number of clones, and reasons for cloning.
+If the user mentions harvesting, curing, or fetching yield forecasts (Geneticist Agent), return a 'HARVEST_FORECAST' component trigger. Evaluate the plant's history and generate a Pheno-Score (S, A, B, C) and a yield estimate.
+If the user asks to generate a full report, export a journal, compile a run, or print the ledger (Compiler Agent), return a 'LEDGER_EXPORT' component trigger. Set preview_title, run_id, and date_range.
+If it doesn't clearly match any above, default to a MORNING_BRIEFING with relevant observations.
+
+User Input: "${input || "Analyze the provided media."}"`,
+    });
+
+    const responseSchema = {
+       type: Type.OBJECT,
+       properties: {
+         agent: { type: Type.STRING, description: "'Botanist', 'Scheduler', 'Environment', 'Geneticist', or 'Compiler'" },
+         component_type: { type: Type.STRING, description: "'GROW_SETUP', 'MORNING_BRIEFING', 'OCR_CAPTURE', 'WALKTHROUGH_REPORT', 'PHENOTYPE_LINEAGE', 'HARVEST_FORECAST', or 'LEDGER_EXPORT'" },
+         setup_data: {
+           type: Type.OBJECT,
+           properties: {
+             strain: { type: Type.STRING },
+             medium: { type: Type.STRING },
+             tent_size: { type: Type.STRING },
+             quantity: { type: Type.NUMBER },
+             nutrient_line: { type: Type.STRING }
+           }
+         },
+         briefing_data: {
+           type: Type.OBJECT,
+           properties: {
+             observations: { type: Type.ARRAY, items: { type: Type.STRING } },
+             pending_approvals: { type: Type.ARRAY, items: { type: Type.STRING } }
+           }
+         },
+         ocr_data: {
+           type: Type.OBJECT,
+           properties: {
+             temperature: { type: Type.NUMBER },
+             humidity: { type: Type.NUMBER },
+             target_temperature: { type: Type.NUMBER },
+             target_humidity: { type: Type.NUMBER },
+             device_type: { type: Type.STRING },
+             status: { type: Type.STRING }
+           }
+         },
+         walkthrough_data: {
+           type: Type.OBJECT,
+           properties: {
+             summary: { type: Type.STRING },
+             anomalies: { type: Type.ARRAY, items: { type: Type.STRING } },
+             plants_identified: { type: Type.NUMBER },
+             actions_required: { type: Type.ARRAY, items: { type: Type.STRING } },
+             analysisResults: {
+               type: Type.OBJECT,
+               properties: {
+                 overallHealthScore: { type: Type.NUMBER },
+                 findings: {
+                   type: Type.ARRAY,
+                   items: {
+                     type: Type.OBJECT,
+                     properties: {
+                       category: { type: Type.STRING },
+                       severity: { type: Type.STRING },
+                       confidence: { type: Type.NUMBER },
+                       title: { type: Type.STRING },
+                       recommendation: { type: Type.STRING }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         },
+         lineage_data: {
+           type: Type.OBJECT,
+           properties: {
+             mother_id: { type: Type.STRING },
+             mother_traits: { type: Type.ARRAY, items: { type: Type.STRING } },
+             clone_count: { type: Type.NUMBER },
+             clone_reason: { type: Type.STRING },
+             lineage_generation: { type: Type.STRING }
+           }
+         },
+         harvest_data: {
+           type: Type.OBJECT,
+           properties: {
+             pheno_score: { type: Type.STRING },
+             yield_estimate: { type: Type.STRING },
+             canopy_evaluation: { type: Type.STRING },
+             strain_baseline_comparison: { type: Type.STRING },
+             status: { type: Type.STRING }
+           }
+         },
+         export_data: {
+           type: Type.OBJECT,
+           properties: {
+             preview_title: { type: Type.STRING },
+             run_id: { type: Type.STRING },
+             date_range: { type: Type.STRING },
+             total_entries: { type: Type.NUMBER },
+             strains_included: { type: Type.ARRAY, items: { type: Type.STRING } }
+           }
+         }
+       },
+       required: ["agent", "component_type"]
+    };
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: { parts: parts },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      }
+    });
+
+    const text = response.text;
+    res.json(JSON.parse(text));
+  } catch(error: any) {
+    console.error("Orchestrator Error:", error);
+    res.status(500).json({ error: "Failed to process orchestrator request" });
+  }
+});
+
 app.post("/api/copilot", async (req, res) => {
   try {
     const { input, history } = req.body;

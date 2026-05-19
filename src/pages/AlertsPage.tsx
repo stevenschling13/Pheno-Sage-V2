@@ -4,10 +4,34 @@ import { useAlerts } from '../contexts/AlertsContext';
 import { AlertTriangle, CheckCircle2, ShieldAlert, Zap, Loader2, Target } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export default function AlertsPage() {
   const { user } = useAuth();
   const { findings, loading, resolveFinding } = useAlerts();
+
+  const handleResolve = async (finding: any) => {
+    if ((finding.severity === 'high' || finding.severity === 'medium') && finding.suggestedTask) {
+      if (db && user) {
+        try {
+          await addDoc(collection(db, 'grow_tasks'), {
+             title: finding.title,
+             description: finding.recommendation,
+             growId: finding.growId,
+             plantId: finding.plantId,
+             ownerId: user.uid,
+             status: 'pending',
+             createdAt: serverTimestamp(),
+             updatedAt: serverTimestamp(),
+          });
+        } catch (e) {
+           console.error("Failed to create suggested task", e);
+        }
+      }
+    }
+    await resolveFinding(finding.id);
+  };
 
   if (loading) {
     return (
@@ -85,7 +109,7 @@ export default function AlertsPage() {
                         [ LOAD SOURCE ]
                       </Link>
                       <button 
-                        onClick={() => resolveFinding(finding.id)}
+                        onClick={() => handleResolve(finding)}
                         className="text-[9px] uppercase tracking-widest text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1"
                       >
                         [ RESOLVE ]
