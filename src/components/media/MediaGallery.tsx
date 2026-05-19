@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MediaAsset } from '../../types';
+import { MediaAsset, toJsDate } from '../../types';
 import { subscribePlantMedia, getMediaBlobUrl, archiveMediaAsset } from '../../services/mediaService';
 import { Play, Image as ImageIcon, Video as VideoIcon, Trash2, Loader2, AlertCircle } from 'lucide-react';
 
@@ -40,7 +40,10 @@ const MediaItem: React.FC<{ asset: MediaAsset; onArchive: (id: string) => void }
   }, [asset]);
 
   const sizeMb = (asset.sizeBytes / (1024 * 1024)).toFixed(1);
-  const date = asset.createdAt?.toDate ? asset.createdAt.toDate().toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' }) : 'T:0';
+  const createdAtDate = toJsDate(asset.createdAt);
+  const date = createdAtDate
+    ? createdAtDate.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' })
+    : 'T:0';
 
   return (
     <div className="relative group border border-brand-border bg-brand-surface font-mono overflow-hidden">

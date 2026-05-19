@@ -3,7 +3,7 @@ import { Plus, Sprout, ChevronRight, Loader2, Calendar, Target, Activity } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { getGrows, createGrow } from '../services/firestoreService';
-import { Grow, GrowStage } from '../types';
+import { Grow, GrowStage, toJsDate } from '../types';
 import { Link } from 'react-router-dom';
 
 export default function GrowsPage() {
@@ -129,7 +129,7 @@ export default function GrowsPage() {
                 <div className="flex items-center justify-between pt-4 border-t border-brand-border">
                   <div className="flex items-center gap-2 data-label">
                     <Calendar className="w-3 h-3 text-zinc-600" />
-                    INIT: <span className="data-value text-[10px]">{new Date(grow.startDate?.seconds * 1000).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' })}</span>
+                    INIT: <span className="data-value text-[10px]">{toJsDate(grow.startDate)?.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' }) ?? '—'}</span>
                   </div>
                 </div>
               </Link>
