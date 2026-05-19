@@ -1,0 +1,6 @@
+{
+  "name": "PhenoSage v2",
+  "description": "Professional cannabis cultivation AI operating system. Visual diagnostics, longitudinal intelligence, and grow-aware assistance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

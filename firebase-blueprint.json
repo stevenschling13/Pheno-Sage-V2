@@ -1,0 +1,193 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "timezone": { "type": "string" },
+        "notificationPrefs": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Grow": {
+      "title": "Grow",
+      "description": "Top-level grow container",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string", "description": "UID of the owner" },
+        "name": { "type": "string" },
+        "stage": { "type": "string", "enum": ["Germination", "Seedling", "Vegetative", "Flower", "Harvested"] },
+        "medium": { "type": "string" },
+        "lightType": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "archived": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "name", "archived", "createdAt"]
+    },
+    "Plant": {
+      "title": "Plant",
+      "description": "Individual plant record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "growId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "name": { "type": "string" },
+        "strain": { "type": "string" },
+        "batchLabel": { "type": "string" },
+        "notes": { "type": "string" },
+        "archived": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["growId", "ownerId", "name", "archived", "createdAt"]
+    },
+    "MediaAsset": {
+      "title": "Media Asset",
+      "description": "Image or video asset",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "growId": { "type": "string" },
+        "plantId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["image", "video"] },
+        "storagePath": { "type": "string" },
+        "contentType": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "processed", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["growId", "plantId", "ownerId", "mediaType", "storagePath", "createdAt"]
+    },
+    "PlantAnalysis": {
+      "title": "Plant Analysis",
+      "description": "AI analysis result",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "growId": { "type": "string" },
+        "plantId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "mediaAssetId": { "type": "string" },
+        "score": { "type": "number" },
+        "summary": { "type": "string" },
+        "schemaVersion": { "type": "string" },
+        "modelVersion": { "type": "string" },
+        "promptVersion": { "type": "string" },
+        "isFallback": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["growId", "plantId", "mediaAssetId", "schemaVersion", "createdAt"]
+    },
+    "PlantFinding": {
+      "title": "Plant Finding",
+      "description": "Specific issue identified by AI",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "growId": { "type": "string" },
+        "plantId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "analysisId": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "confidence": { "type": "number" },
+        "title": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "resolved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["growId", "plantId", "analysisId", "category", "severity", "title", "createdAt"]
+    },
+    "GrowTask": {
+      "title": "Grow Task",
+      "description": "Action item for the grower",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "growId": { "type": "string" },
+        "plantId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "findingId": { "type": "string" },
+        "title": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "status": { "type": "string", "enum": ["todo", "in_progress", "completed", "cancelled"] },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["growId", "title", "priority", "status", "createdAt"]
+    },
+    "ChatThread": {
+      "title": "Chat Thread",
+      "description": "Assistant conversation thread",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "growId": { "type": "string" },
+        "title": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Individual chat turn",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "threadId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+        "content": { "type": "string" },
+        "toolCalls": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["threadId", "role", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/grows/{growId}": {
+      "schema": "Grow",
+      "description": "Cultivation batches"
+    },
+    "/plants/{plantId}": {
+      "schema": "Plant",
+      "description": "Individual plants within grows"
+    },
+    "/media_assets/{mediaId}": {
+      "schema": "MediaAsset",
+      "description": "Images and videos of plants"
+    },
+    "/plant_analyses/{analysisId}": {
+      "schema": "PlantAnalysis",
+      "description": "AI analysis results"
+    },
+    "/plant_findings/{findingId}": {
+      "schema": "PlantFinding",
+      "description": "Specific health flags"
+    },
+    "/grow_tasks/{taskId}": {
+      "schema": "GrowTask",
+      "description": "Task list for the grow"
+    },
+    "/chat_threads/{threadId}": {
+      "schema": "ChatThread",
+      "description": "Conversation tracking"
+    },
+    "/chat_threads/{threadId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Chat turns"
+    }
+  }
+}

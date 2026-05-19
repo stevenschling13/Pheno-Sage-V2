@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{userId}/grows/{growId}/plants/{plantId}/media/{mediaId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      allow create: if request.auth != null && request.auth.uid == userId
+        && mediaId.matches('^[A-Za-z0-9]{20}$')
+        && request.resource.contentType in [
+          'image/jpeg', 'image/png', 'image/webp', 
+          'video/mp4', 'video/quicktime', 'video/webm'
+        ]
+        && (
+          (request.resource.contentType.matches('image/.*') && request.resource.size <= 20 * 1024 * 1024) ||
+          (request.resource.contentType.matches('video/.*') && request.resource.size <= 200 * 1024 * 1024)
+        );
+        
+      allow update: if false;  
+      allow delete: if false;
+    }
+
+    match /{allPaths=**} {
+      // Default to deny all as requested for baseline behavior
+      allow read, write: if false;
+    }
+  }
+}

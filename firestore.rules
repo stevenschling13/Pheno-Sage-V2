@@ -1,0 +1,201 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.ownerId;
+    }
+    
+    function willBeOwner() {
+      return isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+    }
+
+    function isValidGrow() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['ownerId', 'name', 'stage', 'medium', 'startDate', 'archived', 'createdAt', 'updatedAt'])
+        && data.ownerId is string
+        && data.name is string
+        && data.stage in ['Germination', 'Seedling', 'Vegetative', 'Flower', 'Harvested']
+        && data.medium is string
+        && data.archived is bool
+        && data.startDate is timestamp
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPlant() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['ownerId', 'growId', 'name', 'strain', 'archived', 'createdAt', 'updatedAt'])
+        && data.ownerId is string
+        && data.growId is string
+        && data.name is string
+        && data.strain is string
+        && data.archived is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMediaAsset(mediaId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['ownerId', 'growId', 'plantId', 'storagePath', 'fileName', 'contentType', 'sizeBytes', 'mediaType', 'uploadStatus', 'createdAt', 'updatedAt'])
+        && data.ownerId is string
+        && data.growId is string
+        && data.plantId is string
+        && data.storagePath is string
+        && data.fileName is string
+        && data.contentType in ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm']
+        && data.sizeBytes is number
+        && data.mediaType in ['image', 'video']
+        && data.uploadStatus in ['uploading', 'uploaded', 'failed', 'archived']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && ((data.mediaType == 'image' && data.sizeBytes <= 20 * 1024 * 1024) ||
+            (data.mediaType == 'video' && data.sizeBytes <= 200 * 1024 * 1024))
+        && data.storagePath == 'users/' + data.ownerId + '/grows/' + data.growId + '/plants/' + data.plantId + '/media/' + mediaId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLogin', 'timezone'])
+        && request.resource.data.uid is string;
+      allow update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLogin', 'timezone'])
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // Grows
+    match /grows/{growId} {
+      allow read: if isDocOwner();
+      allow create: if willBeOwner() 
+        && isValidGrow() 
+        && request.resource.data.createdAt == request.time 
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isDocOwner() 
+        && isValidGrow()
+        && request.resource.data.ownerId == resource.data.ownerId 
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // Plants
+    match /plants/{plantId} {
+      allow read: if isDocOwner();
+      allow create: if willBeOwner() 
+        && isValidPlant()
+        && get(/databases/$(database)/documents/grows/$(request.resource.data.growId)).data.ownerId == request.auth.uid
+        && request.resource.data.createdAt == request.time 
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isDocOwner() 
+        && isValidPlant()
+        && request.resource.data.ownerId == resource.data.ownerId 
+        && request.resource.data.growId == resource.data.growId 
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // Media Assets
+    match /media_assets/{mediaId} {
+      allow read: if isDocOwner();
+      allow create: if willBeOwner()
+        && isValidMediaAsset(mediaId)
+        && get(/databases/$(database)/documents/grows/$(request.resource.data.growId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/plants/$(request.resource.data.plantId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/plants/$(request.resource.data.plantId)).data.growId == request.resource.data.growId
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isDocOwner()
+        && isValidMediaAsset(mediaId)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.growId == resource.data.growId
+        && request.resource.data.plantId == resource.data.plantId
+        && request.resource.data.storagePath == resource.data.storagePath
+        && request.resource.data.fileName == resource.data.fileName
+        && request.resource.data.contentType == resource.data.contentType
+        && request.resource.data.sizeBytes == resource.data.sizeBytes
+        && request.resource.data.mediaType == resource.data.mediaType
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function isValidPlantAnalysis() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['userId', 'growId', 'plantId', 'mediaAssetId', 'mediaType', 'isFallback', 'overallHealthScore', 'confidenceScore', 'estimatedStage', 'stageConfidence', 'imageQuality', 'visualObservations', 'diagnosticHypotheses', 'recommendations', 'suggestedTasks', 'safetyCaveats', 'analyzedAt', 'createdAt', 'archived'])
+        && data.userId is string
+        && data.growId is string
+        && data.plantId is string
+        && data.mediaAssetId is string
+        && data.mediaType is string
+        && data.isFallback is bool
+        && data.overallHealthScore is number
+        && data.confidenceScore is number
+        && data.estimatedStage is string
+        && data.stageConfidence is number
+        && data.imageQuality is string
+        && data.visualObservations is list
+        && data.diagnosticHypotheses is list
+        && data.recommendations is list
+        && data.suggestedTasks is list
+        && data.safetyCaveats is string
+        && data.analyzedAt is timestamp
+        && data.createdAt is timestamp
+        && data.archived is bool;
+    }
+
+    function isValidPlantFinding() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['userId', 'growId', 'plantId', 'analysisId', 'category', 'severity', 'confidence', 'title', 'recommendation', 'createdAt', 'status'])
+        && data.userId is string
+        && data.growId is string
+        && data.plantId is string
+        && data.analysisId is string
+        && data.category is string
+        && data.severity is string
+        && data.confidence is number
+        && data.title is string
+        && data.recommendation is string
+        && data.createdAt is timestamp
+        && data.status is string;
+    }
+
+    match /plant_analyses/{analysisId} { 
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid; 
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && isValidPlantAnalysis()
+        && get(/databases/$(database)/documents/plants/$(request.resource.data.plantId)).data.ownerId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId;
+    }
+
+    match /plant_findings/{findingId} { 
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid; 
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && isValidPlantFinding()
+        && get(/databases/$(database)/documents/plants/$(request.resource.data.plantId)).data.ownerId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId;
+    }
+
+    match /grow_tasks/{taskId} { allow read: if isDocOwner(); allow write: if false; }
+    match /chat_threads/{threadId} {
+      allow read: if isDocOwner();
+      allow write: if false;
+      
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (get(/databases/$(database)/documents/chat_threads/$(threadId)).data.ownerId == request.auth.uid);
+        allow write: if false;
+      }
+    }
+  }
+}
