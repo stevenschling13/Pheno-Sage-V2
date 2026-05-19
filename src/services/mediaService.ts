@@ -176,15 +176,19 @@ export const archiveMediaAsset = async (assetId: string): Promise<void> => {
   });
 };
 
-export const getMediaBlobUrl = async (storagePath: string): Promise<string> => {
+export const getMediaBlob = async (storagePath: string): Promise<Blob> => {
   const f = requireFirebase();
   const fileRef = ref(f.storage, storagePath);
   try {
-    const blob = await getBlob(fileRef);
-    return URL.createObjectURL(blob);
+    return await getBlob(fileRef);
   } catch (error: any) {
     throw new MediaServiceError(
       `Failed to retrieve media from storage. Please check your connection. Details: ${error.message}`,
     );
   }
+};
+
+export const getMediaBlobUrl = async (storagePath: string): Promise<string> => {
+  const blob = await getMediaBlob(storagePath);
+  return URL.createObjectURL(blob);
 };
